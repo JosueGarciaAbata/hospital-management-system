@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgres:15
+    container_name: hospital-db
+    restart: always
+    environment:
+      POSTGRES_DB: hospital_system
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5440:5432"
+    volumes:
+      - hospital_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - hospital_network
+volumes:
+  hospital_data:
+
+networks:
+  hospital_network:
+    driver: bridge
