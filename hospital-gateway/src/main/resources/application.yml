@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: gateway # Nombre unico del microservicio en Eureka. Esto se usa en las uri para que el gateway los descruba.
+
+  config:
+    import: optional:configserver:http://localhost:8888
