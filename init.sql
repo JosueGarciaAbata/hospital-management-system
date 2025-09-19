@@ -4,7 +4,7 @@
 
 -- Table: Medical Centers
 CREATE TABLE medical_centers (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     city VARCHAR(100) NOT NULL,
     address VARCHAR(200) NOT NULL
@@ -12,62 +12,94 @@ CREATE TABLE medical_centers (
 
 -- Table: Specialties
 CREATE TABLE specialties (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description TEXT
 );
 
 -- Table: Roles
 CREATE TABLE roles (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE
 );
 
+
 -- Table: Users
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     dni VARCHAR(20) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL, -- encrypted password
     gender VARCHAR(10),
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
-    center_id INT NOT NULL,
-    role_id INT NOT NULL,
-    CONSTRAINT fk_center_user FOREIGN KEY (center_id) REFERENCES medical_centers(id) ON DELETE CASCADE,
-    CONSTRAINT fk_role_user FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE RESTRICT
+    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    center_id BIGINT NOT NULL
+);
+
+-- Table: Users_Roles (join table for many-to-many)
+CREATE TABLE users_roles (
+    user_id BIGINT NOT NULL,
+    role_id BIGINT NOT NULL,
+    PRIMARY KEY (user_id, role_id),
+    CONSTRAINT fk_user_roles_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_user_roles_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
 );
 
 -- Table: Doctors
 CREATE TABLE doctors (
-    id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL UNIQUE,
-    specialty_id INT NOT NULL,
-    CONSTRAINT fk_user_doctor FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT fk_specialty_doctor FOREIGN KEY (specialty_id) REFERENCES specialties(id) ON DELETE RESTRICT
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL UNIQUE,
+    specialty_id BIGINT NOT NULL
 );
 
 -- Table: Patients
 CREATE TABLE patients (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     dni VARCHAR(20) NOT NULL UNIQUE,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
     birth_date DATE NOT NULL,
-    center_id INT NOT NULL,
-    CONSTRAINT fk_center_patient FOREIGN KEY (center_id) REFERENCES medical_centers(id) ON DELETE CASCADE
+    center_id BIGINT NOT NULL
 );
 
 -- Table: Medical Consultations
 CREATE TABLE medical_consultations (
-    id SERIAL PRIMARY KEY,
-    patient_id INT NOT NULL,
-    doctor_id INT NOT NULL,
-    center_id INT NOT NULL,
+    id BIGSERIAL PRIMARY KEY,
+    patient_id BIGINT NOT NULL,
+    doctor_id BIGINT NOT NULL,
+    center_id BIGINT NOT NULL,
     date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     diagnosis TEXT,
     treatment TEXT,
-    notes TEXT,
-    CONSTRAINT fk_patient_consult FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
-    CONSTRAINT fk_doctor_consult FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE,
-    CONSTRAINT fk_center_consult FOREIGN KEY (center_id) REFERENCES medical_centers(id) ON DELETE CASCADE
+    notes TEXT
 );
+
+-- Habilitar extensión para hashing
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Insert default role ADMIN
+INSERT INTO roles (name)
+VALUES ('ADMIN');
+
+INSERT INTO roles (name)
+VALUES ('USER');
+
+-- Insert default medical center (needed for FK)
+INSERT INTO medical_centers (name, city, address)
+VALUES ('Central Hospital', 'Quito', 'Av. Principal 123');
+
+-- Insert default admin user (password: admin123)
+INSERT INTO users (dni, password, gender, first_name, last_name, enabled, center_id)
+VALUES (
+           'admin001',
+           crypt('admin123', gen_salt('bf')), -- genera hash bcrypt automáticamente
+           'MALE',
+           'System',
+           'Admin',
+           TRUE,
+           1
+       );
+
+-- Link user to ADMIN role
+INSERT INTO users_roles (user_id, role_id)
+VALUES (1, 1);
