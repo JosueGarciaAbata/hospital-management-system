@@ -1,0 +1,15 @@
+server:
+  port: ${AUTH_PORT:8090}
+
+spring:
+  application:
+    name:  ${AUTH_NAME}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true

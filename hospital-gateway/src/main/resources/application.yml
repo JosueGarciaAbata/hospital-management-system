@@ -1,6 +1,38 @@
+server:
+  port: ${GATEWAY_PORT}
+
 spring:
   application:
-    name: gateway # Nombre unico del microservicio en Eureka. Esto se usa en las uri para que el gateway los descruba.
+    name: ${GATEWAY_NAME} # Nombre unico del microservicio en Eureka. Esto se usa en las uri para que el gateway los descruba.
 
-  config:
-    import: optional:configserver:http://localhost:8888
+  cloud:
+    gateway:
+      routes:
+        - id: auth-service
+          uri: ${GATEWAY_URI_AUTH_SERVICE}
+          predicates:
+            - Path=/auth/**
+
+        - id: consulting-service
+          uri: ${GATEWAY_URI_CONSULTING_SERVICE}
+          predicates:
+            - Path=/api/consulting/**
+
+        - id: admin-service
+          uri: ${GATEWAY_URI_ADMIN_SERVICE}
+          predicates:
+            - Path=/admin/**
+
+        - id: reporting-service
+          uri: ${GATEWAY_URI_REPORTING_SERVICE}
+          predicates:
+            - Path=/reporting/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true

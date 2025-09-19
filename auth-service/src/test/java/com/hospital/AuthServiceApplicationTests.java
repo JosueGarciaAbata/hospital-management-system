@@ -1,10 +1,10 @@
-package com.hospital.config;
+package com.hospital;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class HospitalConfigServerApplicationTests {
+class AuthServiceApplicationTests {
 
 	@Test
 	void contextLoads() {

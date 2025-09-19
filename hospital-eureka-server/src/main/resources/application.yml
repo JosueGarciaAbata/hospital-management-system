@@ -1,5 +1,13 @@
+server:
+  port: ${EUREKA_PORT}
+
 spring:
   application:
-    name: eureka-server
-  config:
-    import: optional:configserver:http://localhost:8888
+    name: ${EUREKA_NAME}
+
+eureka:
+  instance:
+    hostname: ${EUREKA_HOST}
+  client:
+    register-with-eureka: false # Un servidor no se registra asi mismo
+    fetch-registry: false # No busca otro servidores
