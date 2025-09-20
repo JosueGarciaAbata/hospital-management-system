@@ -1,0 +1,27 @@
+server:
+  port: ${CONSULTING_PORT:8090}
+
+spring:
+  application:
+    name:  ${CONSULTING_NAME}
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOSTNAME}:${DB_PORT}/hospital_system
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
