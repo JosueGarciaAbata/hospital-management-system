@@ -17,6 +17,7 @@
 	<modules>
 		<module>hospital-eureka-server</module>
 		<module>hospital-gateway</module>
+        <module>admin-service</module>
 		<module>auth-service</module>
 	</modules>
 
