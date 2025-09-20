@@ -61,6 +61,7 @@ CREATE TABLE patients (
                           first_name VARCHAR(100) NOT NULL,
                           last_name VARCHAR(100) NOT NULL,
                           birth_date DATE NOT NULL,
+                          gender VARCHAR(10),
                           center_id BIGINT NOT NULL,
                           CONSTRAINT fk_patient_center FOREIGN KEY (center_id) REFERENCES medical_centers(id) ON DELETE CASCADE
 );
