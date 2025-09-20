@@ -82,7 +82,7 @@ INSERT INTO roles (name)
 VALUES ('ADMIN');
 
 INSERT INTO roles (name)
-VALUES ('USER');
+VALUES ('DOCTOR');
 
 -- Insert default medical center (needed for FK)
 INSERT INTO medical_centers (name, city, address)
