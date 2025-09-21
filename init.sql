@@ -91,6 +91,7 @@ CREATE TABLE patients (
                           birth_date DATE NOT NULL,
                           gender VARCHAR(10),
                           center_id BIGINT NOT NULL,
+                          deleted BOOLEAN NOT NULL DEFAULT FALSE,
                           CONSTRAINT fk_patient_center FOREIGN KEY (center_id) REFERENCES medical_centers(id) ON DELETE CASCADE
 );
 

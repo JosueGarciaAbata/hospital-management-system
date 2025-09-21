@@ -43,10 +43,31 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleNotFound(NotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("detail", ex.getMessage()));
+    public ResponseEntity<ApiError> handleNotFound(NotFoundException ex) {
+        ApiError apiError = new ApiError(
+                "https://example.com/not-found",
+                "Recurso no encontrado",
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                ex.getStackTrace()[0].getMethodName(),
+                null
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiError);
     }
+
+    @ExceptionHandler(DuplicateDniException.class)
+    public ResponseEntity<ApiError> handleDuplicateDni(DuplicateDniException ex) {
+        ApiError apiError = new ApiError(
+                "https://example.com/duplicate-dni",
+                "DNI duplicado",
+                HttpStatus.CONFLICT.value(),
+                "El DNI ya existe en el sistema",
+                ex.getStackTrace()[0].getMethodName(),
+                null
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(apiError);
+    }
+
 
 //    // Ejemplo de error de negocio tipo token expirado
 //    @ExceptionHandler(TokenExpiredException.class)
