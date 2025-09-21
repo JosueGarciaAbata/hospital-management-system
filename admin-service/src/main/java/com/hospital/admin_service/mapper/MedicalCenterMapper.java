@@ -1,0 +1,35 @@
+package com.hospital.admin_service.mapper;
+
+import com.hospital.admin_service.DTO.medicalCenter.MedicalCenterCreateRequest;
+import com.hospital.admin_service.DTO.medicalCenter.MedicalCenterRead;
+import com.hospital.admin_service.DTO.medicalCenter.MedicalCenterUpdateRequest;
+import com.hospital.admin_service.model.MedicalCenter;
+import org.mapstruct.*;
+
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
+public interface MedicalCenterMapper {
+
+    @Mappings({
+            @Mapping(target = "id",        source = "id"),
+            @Mapping(target = "version",   source = "version"),
+            @Mapping(target = "name",      source = "name"),
+            @Mapping(target = "city",      source = "city"),
+            @Mapping(target = "address",   source = "address"),
+            @Mapping(target = "createdAt", source = "createdAt"),
+            @Mapping(target = "updatedAt", source = "updatedAt")
+    })
+    MedicalCenterRead toRead(MedicalCenter entity);
+
+    @Mapping(target = "id",        ignore = true)
+    @Mapping(target = "version",   ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    MedicalCenter toEntity(MedicalCenterCreateRequest dto);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id",        ignore = true)
+    @Mapping(target = "version",   ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    void updateEntityFromDto(MedicalCenterUpdateRequest dto, @MappingTarget MedicalCenter entity);
+}
