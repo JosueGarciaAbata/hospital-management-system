@@ -49,6 +49,15 @@ public class GlobalHandlerException {
         return problem;
     }
 
+    // Validaciones personalizadas
+    @ExceptionHandler({DniAlreadyExistsException.class})
+    public ProblemDetail handleDniAlreadyExists(Exception ex) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problem.setTitle("Error de validación personalizada");
+        problem.setDetail(ex.getMessage());
+        return problem;
+    }
+
     // Restricciones de base de datos
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail handleDataIntegrity(DataIntegrityViolationException ex) {
