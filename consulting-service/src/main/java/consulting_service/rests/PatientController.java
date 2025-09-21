@@ -25,8 +25,13 @@ public class PatientController {
         this.mapper = mapper;
     }
 
+    /*
+    *  aunque el gateway pone el center id en los header (@RequestHeader("X-Center-Id") Long centerId), en caso
+    * de que otro microservicio lo necesite tal vez no sea lo mas optimo
+    * asi que mejor lo mando como RequestParam
+    * */
     @GetMapping
-    public ResponseEntity<?> getPatients(@RequestHeader("X-Center-Id") Long centerId) {
+    public ResponseEntity<?> getPatients(@RequestParam Long centerId) {
         List<Patient> patients = service.getPatients(centerId);
 
         if (patients.isEmpty()) {
@@ -38,11 +43,10 @@ public class PatientController {
         return ResponseEntity.ok(patients);
     }
 
-
     @GetMapping("/{id}")
-    public ResponseEntity<Patient> getPatient(@PathVariable Long id,
-                                              @RequestHeader("X-Center-Id") Long centerId) {
-        Patient patient = service.getPatient(id, centerId);
+    public ResponseEntity<Patient> getPatient(@PathVariable Long id
+                                             ) {
+        Patient patient = service.getPatient(id);
 
         return ResponseEntity.ok(patient);
 
@@ -56,6 +60,17 @@ public class PatientController {
         PatientResponseDTO response = mapper.toDTO(patient);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PatientResponseDTO> updatePatient(@PathVariable Long id,@Valid  @RequestBody PatientRequestDTO request) {
+
+        Patient patient = service.updatePatient(id, request);
+
+        PatientResponseDTO response = mapper.toDTO(patient);
+
+        return ResponseEntity.ok(response);
 
     }
 

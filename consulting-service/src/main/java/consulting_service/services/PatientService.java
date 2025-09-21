@@ -10,8 +10,10 @@ import java.util.List;
 
 public interface PatientService {
 
-    Patient addPatient(PatientRequestDTO patient);
-    Patient getPatient(Long id,Long centerId);
+    Patient addPatient(PatientRequestDTO request);
+    Patient getPatient(Long id);
     List<Patient> getPatients(Long centerId);
+    Patient  updatePatient(Long id,PatientRequestDTO request);
+   
 
 }

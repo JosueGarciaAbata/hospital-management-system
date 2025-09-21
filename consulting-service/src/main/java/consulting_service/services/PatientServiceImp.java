@@ -26,9 +26,10 @@ public class PatientServiceImp  implements  PatientService{
         return repository.findByCenterIdAndDeletedFalse(centerId);
     }
 
+
     @Override
-    public Patient getPatient( Long id,Long centerId) {
-       return repository.findByIdAndCenterIdAndDeletedFalse(id,centerId).orElseThrow(
+    public Patient getPatient( Long id) {
+       return repository.findByIdAndDeletedFalse(id).orElseThrow(
                ()-> new NotFoundException("Paciente no encontrado")
        );
     }
@@ -42,6 +43,25 @@ public class PatientServiceImp  implements  PatientService{
         if(repository.existsByDni(patient.getDni())) {
             throw  new DuplicateDniException("El DNI ya existe");
         }
+
+        return repository.save(patient);
+
+    }
+
+    @Override
+    public Patient updatePatient(Long id, PatientRequestDTO request) {
+
+
+        Patient patient = repository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Paciente no encontrado"));
+
+        repository.findByDniAndIdNot(request.dni(), id)
+                .ifPresent(p -> {
+                    throw new DuplicateDniException("El DNI está registrado con otro paciente");
+                });
+
+
+        mapper.updateEntityFromDto(request, patient);
 
         return repository.save(patient);
 
