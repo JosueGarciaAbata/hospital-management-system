@@ -1,6 +1,7 @@
-package consulting_service.services;
+package consulting_service.services.Patient;
 
 import consulting_service.dtos.request.PatientRequestDTO;
+import consulting_service.dtos.response.PatientResponseDTO;
 import consulting_service.entities.Patient;
 import consulting_service.exceptions.DuplicateDniException;
 import consulting_service.exceptions.NotFoundException;
@@ -77,6 +78,14 @@ public class PatientServiceImp  implements  PatientService{
 
         repository.save(patient);
 
+    }
+
+    @Override
+    public PatientResponseDTO getPatientTC(Long id) {
+        Patient patient  = repository.findById(id).orElseThrow(
+                ()-> new NotFoundException("Paciente no encontrado")
+        );
+        return this.mapper.toDTO(patient);
     }
 
 

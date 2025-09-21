@@ -14,5 +14,4 @@ public interface PatientRepository  extends JpaRepository<Patient,Long> {
     Optional<Patient> findByIdAndDeletedFalse(Long id);
     boolean existsByDni(String dni);
     Optional<Patient> findByDniAndIdNot(String dni, Long id);
-
 }

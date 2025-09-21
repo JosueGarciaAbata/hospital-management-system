@@ -4,8 +4,9 @@ import consulting_service.dtos.request.PatientRequestDTO;
 import consulting_service.dtos.response.PatientResponseDTO;
 import consulting_service.entities.Patient;
 import consulting_service.mappers.PatientMapper;
-import consulting_service.services.PatientService;
-import consulting_service.services.PatientServiceImp;
+import consulting_service.security.annotations.RolesAllowed;
+import consulting_service.services.Patient.PatientService;
+import consulting_service.services.Patient.PatientServiceImp;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +31,7 @@ public class PatientController {
     * de que otro microservicio lo necesite tal vez no sea lo mas optimo
     * asi que mejor lo mando como RequestParam
     * */
+    @RolesAllowed("DOCTOR")
     @GetMapping
     public ResponseEntity<?> getPatients(@RequestParam Long centerId) {
         List<Patient> patients = service.getPatients(centerId);
@@ -43,6 +45,7 @@ public class PatientController {
         return ResponseEntity.ok(patients);
     }
 
+    @RolesAllowed("DOCTOR")
     @GetMapping("/{id}")
     public ResponseEntity<Patient> getPatient(@PathVariable Long id
                                              ) {
@@ -51,7 +54,7 @@ public class PatientController {
         return ResponseEntity.ok(patient);
 
     }
-
+    @RolesAllowed("DOCTOR")
     @PostMapping
     public ResponseEntity<PatientResponseDTO> addPatient(@Valid  @RequestBody PatientRequestDTO request) {
 
@@ -62,7 +65,7 @@ public class PatientController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
     }
-
+    @RolesAllowed("DOCTOR")
     @PutMapping("/{id}")
     public ResponseEntity<PatientResponseDTO> updatePatient(@PathVariable Long id,@Valid  @RequestBody PatientRequestDTO request) {
 
@@ -73,7 +76,7 @@ public class PatientController {
         return ResponseEntity.ok(response);
 
     }
-
+    @RolesAllowed("DOCTOR")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePatient(@PathVariable Long id) {
         service.deletePatient(id);
