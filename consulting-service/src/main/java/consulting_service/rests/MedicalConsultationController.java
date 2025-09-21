@@ -1,9 +1,13 @@
 package consulting_service.rests;
 
+import consulting_service.dtos.request.MedicalConsultationRequestDTO;
+import consulting_service.dtos.request.PatientRequestDTO;
 import consulting_service.dtos.response.MedicalConsultations.MedicalConsultationResponseDTO;
+import consulting_service.dtos.response.PatientResponseDTO;
 import consulting_service.entities.Patient;
 import consulting_service.security.annotations.RolesAllowed;
 import consulting_service.services.MedicalConsultations.MedicalConsultationsService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -42,6 +46,15 @@ public class MedicalConsultationController {
         MedicalConsultationResponseDTO response = this.service.getMedicalConsultationById(id);
 
         return ResponseEntity.ok(response);
+
+    }
+
+    @PostMapping
+    public ResponseEntity<MedicalConsultationResponseDTO> addMedicalConsultation(@Valid @RequestBody MedicalConsultationRequestDTO request) {
+
+        MedicalConsultationResponseDTO response = service.addMedicalConsultation(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
     }
 

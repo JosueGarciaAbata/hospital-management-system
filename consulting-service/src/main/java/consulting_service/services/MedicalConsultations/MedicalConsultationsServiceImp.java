@@ -1,5 +1,6 @@
 package consulting_service.services.MedicalConsultations;
 
+import consulting_service.dtos.request.MedicalConsultationRequestDTO;
 import consulting_service.dtos.response.MedicalConsultations.DoctorReadDTO;
 import consulting_service.dtos.response.MedicalConsultations.MedicalConsultationResponseDTO;
 import consulting_service.dtos.response.PatientResponseDTO;
@@ -39,7 +40,7 @@ public class MedicalConsultationsServiceImp implements MedicalConsultationsServi
         //TODO: Validar que doctor no este de baja
 
 
-        List<MedicalConsultation> medicalConsultations = repository.findByDoctorId(doctorId);
+        List<MedicalConsultation> medicalConsultations = repository.findByDoctorIdAndDeletedFalse(doctorId);
 
         if (medicalConsultations.isEmpty()) {
             throw new NotFoundException("No se han encontrado consultas médicas para el doctor");
@@ -77,7 +78,7 @@ public class MedicalConsultationsServiceImp implements MedicalConsultationsServi
     @Override
     public MedicalConsultationResponseDTO getMedicalConsultationById(Long id) {
 
-        MedicalConsultation medicalConsultation = repository.findById(id).orElseThrow(() -> new NotFoundException("Consulta no encontrada"));
+        MedicalConsultation medicalConsultation = repository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Consulta no encontrada"));
 
 
         PatientResponseDTO patient = patientService.getPatientTC(medicalConsultation.getPatientId());
@@ -97,6 +98,28 @@ public class MedicalConsultationsServiceImp implements MedicalConsultationsServi
 
         response.setDoctor(doctor);
 
+        response.setCenter(center);
+
+        return response;
+    }
+
+    @Override
+    public MedicalConsultationResponseDTO addMedicalConsultation(MedicalConsultationRequestDTO request) {
+
+
+        PatientResponseDTO patient = patientService.getPatientTC(request.getPatientId());
+        MedicalCenterReadDTO center = medicalCenterServiceClient.getName(request.getCenterId());
+        DoctorReadDTO doctor = new DoctorReadDTO(request.getDoctorId(), "John", "Doe");
+
+
+        MedicalConsultation record = this.mapper.toEntity(request);
+
+        record = repository.save(record);
+
+        MedicalConsultationResponseDTO response = this.mapper.toDTO(record);
+
+        response.setPatient(patient);
+        response.setDoctor(doctor);
         response.setCenter(center);
 
         return response;

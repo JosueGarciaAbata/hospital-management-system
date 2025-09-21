@@ -34,15 +34,15 @@ public class MedicalConsultation {
     @Column(name = "date", nullable = false)
     LocalDateTime date;
 
-    @NotBlank
+
     @Column(name = "diagnosis")
     String diagnosis;
 
-    @NotBlank
+
     @Column(name = "treatment")
     String treatment;
 
-    @NotBlank
+
     @Column(name = "notes")
     String notes;
 
