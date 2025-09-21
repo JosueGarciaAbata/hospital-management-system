@@ -4,18 +4,46 @@
 
 -- Table: Medical Centers
 CREATE TABLE medical_centers (
-                                 id BIGSERIAL PRIMARY KEY,
-                                 name VARCHAR(100) NOT NULL,
-                                 city VARCHAR(100) NOT NULL,
-                                 address VARCHAR(200) NOT NULL
+                                 id         BIGSERIAL PRIMARY KEY,
+                                 name       VARCHAR(100) NOT NULL,
+                                 city       VARCHAR(100) NOT NULL,
+                                 address    VARCHAR(200) NOT NULL,
+                                 created_at TIMESTAMP    NOT NULL DEFAULT now(),
+                                 updated_at TIMESTAMP    NOT NULL DEFAULT now(),
+                                 deleted    BOOLEAN      NOT NULL DEFAULT FALSE,
+                                 version    BIGINT       NOT NULL DEFAULT 0 -- Optimistic Locking
 );
+
+-- Unicidad (name + address) solo para registros activos (case-insensitive)
+CREATE UNIQUE INDEX uq_med_centers_name_addr_active
+    ON medical_centers (LOWER(name), LOWER(address))
+    WHERE deleted = FALSE;
+
+-- Índices para búsquedas frecuentes
+CREATE INDEX idx_med_centers_name
+    ON medical_centers (LOWER(name));
+
+CREATE INDEX idx_med_centers_city
+    ON medical_centers (LOWER(city));
+
 
 -- Table: Specialties
 CREATE TABLE specialties (
-                             id BIGSERIAL PRIMARY KEY,
-                             name VARCHAR(100) NOT NULL,
-                             description TEXT
+                             id          BIGSERIAL PRIMARY KEY,
+                             name        VARCHAR(100) NOT NULL,
+                             description TEXT,
+                             created_at  TIMESTAMP NOT NULL DEFAULT now(),
+                             updated_at  TIMESTAMP NOT NULL DEFAULT now(),
+                             deleted     BOOLEAN NOT NULL DEFAULT FALSE,
+                             version     BIGINT  NOT NULL DEFAULT 0 -- Optimistic Locking
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_specialties_name_active
+    ON specialties (LOWER(name))
+    WHERE deleted = FALSE;
+
+CREATE INDEX IF NOT EXISTS idx_specialties_name
+    ON specialties (LOWER(name));
 
 -- Table: Roles
 CREATE TABLE roles (
@@ -61,6 +89,7 @@ CREATE TABLE patients (
                           first_name VARCHAR(100) NOT NULL,
                           last_name VARCHAR(100) NOT NULL,
                           birth_date DATE NOT NULL,
+                          gender VARCHAR(10),
                           center_id BIGINT NOT NULL,
                           CONSTRAINT fk_patient_center FOREIGN KEY (center_id) REFERENCES medical_centers(id) ON DELETE CASCADE
 );
