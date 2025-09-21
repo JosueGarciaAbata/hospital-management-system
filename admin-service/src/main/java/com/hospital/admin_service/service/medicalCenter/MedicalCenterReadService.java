@@ -1,9 +1,10 @@
 package com.hospital.admin_service.service.medicalCenter;
 
-import com.hospital.admin_service.DTO.medicalCenter.MedicalCenterRead;
 import com.hospital.admin_service.model.MedicalCenter;
 import com.hospital.admin_service.repo.MedicalCenterRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,11 +20,19 @@ public class MedicalCenterReadService {
     private final MedicalCenterRepository repository;
 
     public List<MedicalCenter> findAllEntities(boolean includeDeleted) {
-        return includeDeleted ? repository.findAllIncludingDeleted() : repository.findAll();
+        return includeDeleted ? repository.findAllIncludingDeleted()
+                : repository.findAll();
+    }
+
+    public Page<MedicalCenter> findAllPage(boolean includeDeleted, Pageable pageable) {
+        return includeDeleted ? repository.findAllIncludingDeletedPage(pageable)
+                : repository.findAll(pageable);
     }
 
     public MedicalCenter findEntityById(Long id, boolean includeDeleted) {
         return (includeDeleted ? repository.findByIdIncludingDeleted(id) : repository.findById(id))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "El Centro Médico no existe."));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "El Centro Médico no existe."
+                ));
     }
 }
