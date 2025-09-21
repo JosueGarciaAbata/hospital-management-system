@@ -19,6 +19,7 @@
 		<module>hospital-gateway</module>
         <module>admin-service</module>
 		<module>auth-service</module>
+		<module>consulting-service</module>
 	</modules>
 
 	<url/>
