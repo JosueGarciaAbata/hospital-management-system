@@ -58,4 +58,13 @@ public class MedicalConsultationController {
 
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<MedicalConsultationResponseDTO> updateMedicalConsultation(@PathVariable Long id,@Valid  @RequestBody MedicalConsultationRequestDTO request) {
+
+        MedicalConsultationResponseDTO response = service.updateMedicalConsultation(id, request);
+
+        return ResponseEntity.ok(response);
+
+    }
+
 }

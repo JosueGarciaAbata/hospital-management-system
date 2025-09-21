@@ -13,4 +13,6 @@ public interface MedicalConsultationsService {
    MedicalConsultationResponseDTO getMedicalConsultationById(Long id);
    MedicalConsultationResponseDTO addMedicalConsultation(MedicalConsultationRequestDTO request);
 
+   MedicalConsultationResponseDTO updateMedicalConsultation(Long id,MedicalConsultationRequestDTO request);
+
 }
