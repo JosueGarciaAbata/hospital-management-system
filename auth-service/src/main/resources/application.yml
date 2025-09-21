@@ -17,6 +17,11 @@ spring:
       ddl-auto: validate
     show-sql: true
 
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+
 eureka:
   client:
     service-url:
@@ -25,3 +30,11 @@ eureka:
     fetch-registry: true
   instance:
     prefer-ip-address: true
+
+resilience4j:
+  ratelimiter:
+    instances:
+        authService:
+            limit-for-period: 5 # Maximo 5 llamadas/peticiones
+            limit-refresh-period: 10s # Cada 10 segundos
+            timeout-duration: 0ms # Si esta lleno, falla de inmediato
