@@ -67,5 +67,17 @@ public class PatientServiceImp  implements  PatientService{
 
     }
 
+    @Override
+    public void deletePatient(Long id) {
+
+        Patient patient = repository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Paciente no encontrado"));
+
+        patient.setDeleted(true);
+
+        repository.save(patient);
+
+    }
+
 
 }
