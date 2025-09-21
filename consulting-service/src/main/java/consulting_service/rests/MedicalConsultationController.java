@@ -64,7 +64,12 @@ public class MedicalConsultationController {
         MedicalConsultationResponseDTO response = service.updateMedicalConsultation(id, request);
 
         return ResponseEntity.ok(response);
+    }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteMedicalConsultation(@PathVariable Long id) {
+        service.deleteMedicalConsultation(id);
+        return ResponseEntity.noContent().build();
     }
 
 }

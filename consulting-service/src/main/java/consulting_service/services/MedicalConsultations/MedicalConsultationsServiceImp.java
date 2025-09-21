@@ -128,22 +128,34 @@ public class MedicalConsultationsServiceImp implements MedicalConsultationsServi
     @Override
     public MedicalConsultationResponseDTO updateMedicalConsultation(Long id, MedicalConsultationRequestDTO request) {
 
+
+        MedicalConsultation record = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Consulta médica no encontrada"));
+
+
+        mapper.updateEntityFromDto(request, record);
+
+
         PatientResponseDTO patient = patientService.getPatientTC(request.getPatientId());
         MedicalCenterReadDTO center = medicalCenterServiceClient.getName(request.getCenterId());
         DoctorReadDTO doctor = new DoctorReadDTO(request.getDoctorId(), "John", "Doe");
 
-        MedicalConsultation record = this.mapper.toEntity(request);
-
-        mapper.updateEntityFromDto(request,record);
 
         repository.save(record);
 
         MedicalConsultationResponseDTO response = this.mapper.toDTO(record);
-
         response.setPatient(patient);
         response.setDoctor(doctor);
         response.setCenter(center);
 
         return response;
+    }
+
+    @Override
+    public void deleteMedicalConsultation(Long id) {
+        MedicalConsultation record = repository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Consulta no encontrada"));
+        record.setDeleted(true);
+        repository.save(record);
+
     }
 }

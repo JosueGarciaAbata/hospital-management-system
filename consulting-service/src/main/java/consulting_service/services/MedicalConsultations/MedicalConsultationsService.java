@@ -15,4 +15,5 @@ public interface MedicalConsultationsService {
 
    MedicalConsultationResponseDTO updateMedicalConsultation(Long id,MedicalConsultationRequestDTO request);
 
+   void deleteMedicalConsultation(Long id);
 }
