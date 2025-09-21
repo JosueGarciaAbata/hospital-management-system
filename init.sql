@@ -4,11 +4,19 @@
 
 -- Table: Medical Centers
 CREATE TABLE medical_centers (
-                                 id BIGSERIAL PRIMARY KEY,
-                                 name VARCHAR(100) NOT NULL,
-                                 city VARCHAR(100) NOT NULL,
-                                 address VARCHAR(200) NOT NULL
+                                 id         BIGSERIAL PRIMARY KEY,
+                                 name       VARCHAR(100) NOT NULL,
+                                 city       VARCHAR(100) NOT NULL,
+                                 address    VARCHAR(200) NOT NULL,
+                                 created_at TIMESTAMP    NOT NULL DEFAULT now(),
+                                 updated_at TIMESTAMP    NOT NULL DEFAULT now(),
+                                 deleted    BOOLEAN      NOT NULL DEFAULT FALSE,
+                                 version    BIGINT       NOT NULL DEFAULT 0  --Optimistic locking
 );
+
+CREATE INDEX IF NOT EXISTS idx_medical_centers_not_deleted
+    ON medical_centers (id)
+    WHERE deleted IS NULL;
 
 -- Table: Specialties
 CREATE TABLE specialties (
