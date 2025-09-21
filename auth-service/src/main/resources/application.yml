@@ -34,7 +34,7 @@ eureka:
 resilience4j:
   ratelimiter:
     instances:
-        authService:
+      userService:
             limit-for-period: 5 # Maximo 5 llamadas/peticiones
             limit-refresh-period: 10s # Cada 10 segundos
             timeout-duration: 0ms # Si esta lleno, falla de inmediato

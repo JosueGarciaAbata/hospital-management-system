@@ -83,4 +83,13 @@ public class MedicalCenterController {
         writeService.softDelete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/validateee/{id}")
+    public ResponseEntity<Void> validateCenterId(@PathVariable Long id) {
+        if (!readService.existsById(id)) {
+            return ResponseEntity.notFound().build(); // 404 Not Found
+        }
+
+        return ResponseEntity.ok().build(); // 200 OK
+    }
 }

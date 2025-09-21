@@ -7,12 +7,14 @@ import com.hospital.dtos.UserResponse;
 import com.hospital.entities.User;
 import com.hospital.mappers.UserMapper;
 import com.hospital.services.UserService;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@RateLimiter(name = "userService")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/auth")

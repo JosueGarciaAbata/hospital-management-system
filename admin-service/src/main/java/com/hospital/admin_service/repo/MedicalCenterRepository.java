@@ -28,4 +28,6 @@
         @Lock(LockModeType.PESSIMISTIC_WRITE)
         @Query("select m from MedicalCenter m where m.id = :id")
         Optional<MedicalCenter> lockById(@Param("id") Long id);
+
+        boolean existsById(@Param("id") Long id);
     }
