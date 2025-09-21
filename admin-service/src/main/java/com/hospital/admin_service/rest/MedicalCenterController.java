@@ -6,13 +6,17 @@ import com.hospital.admin_service.DTO.medicalCenter.MedicalCenterUpdateRequest;
 import com.hospital.admin_service.mapper.MedicalCenterMapper;
 import com.hospital.admin_service.model.MedicalCenter;
 import com.hospital.admin_service.security.filters.RequireRole;
-import com.hospital.admin_service.service.medicalCenter.MedicalCenterWriteService;
 import com.hospital.admin_service.service.medicalCenter.MedicalCenterReadService;
+import com.hospital.admin_service.service.medicalCenter.MedicalCenterWriteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -27,7 +31,14 @@ public class MedicalCenterController {
 
     @RequireRole("ADMIN")
     @GetMapping
-    public List<MedicalCenterRead> list(@RequestParam(defaultValue = "false") boolean includeDeleted) {
+    public Page<MedicalCenterRead> list(@RequestParam(defaultValue = "false") boolean includeDeleted,
+                                        @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+        return readService.findAllPage(includeDeleted, pageable).map(mapper::toRead);
+    }
+
+    @RequireRole("ADMIN")
+    @GetMapping("/all")
+    public List<MedicalCenterRead> listAll(@RequestParam(defaultValue = "false") boolean includeDeleted) {
         return readService.findAllEntities(includeDeleted).stream()
                 .map(mapper::toRead)
                 .toList();
@@ -35,35 +46,41 @@ public class MedicalCenterController {
 
     @RequireRole("ADMIN")
     @GetMapping("/{id}")
-    public MedicalCenterRead getOne(@PathVariable Long id,
-                                    @RequestParam(defaultValue = "false") boolean includeDeleted) {
-        return mapper.toRead(readService.findEntityById(id, includeDeleted));
+    public ResponseEntity<MedicalCenterRead> getOne(@PathVariable Long id,
+                                                    @RequestParam(defaultValue = "false") boolean includeDeleted) {
+        var dto = mapper.toRead(readService.findEntityById(id, includeDeleted));
+        return ResponseEntity.ok()
+                .eTag("\"" + dto.version() + "\"")
+                .body(dto);
     }
 
     @RequireRole("ADMIN")
     @PostMapping
-    public MedicalCenterRead create(@Valid @RequestBody MedicalCenterCreateRequest body) {
-        MedicalCenter entity = mapper.toEntity(body);
-        MedicalCenter saved  = writeService.create(entity);
-        return mapper.toRead(saved);
+    public ResponseEntity<MedicalCenterRead> create(@Valid @RequestBody MedicalCenterCreateRequest body) {
+        MedicalCenter saved = writeService.create(mapper.toEntity(body));
+        URI location = URI.create("/admin/centers/" + saved.getId());
+        return ResponseEntity.created(location)
+                .eTag("\"" + saved.getVersion() + "\"")
+                .body(mapper.toRead(saved));
     }
 
     @RequireRole("ADMIN")
     @PutMapping("/{id}")
-    public MedicalCenterRead update(@PathVariable Long id,
-                                    @Valid @RequestBody MedicalCenterUpdateRequest body) {
-
-        MedicalCenter incoming = new MedicalCenter();
+    public ResponseEntity<MedicalCenterRead> update(@PathVariable Long id,
+                                                    @RequestHeader(value = "If-Match", required = false) String ifMatch,
+                                                    @Valid @RequestBody MedicalCenterUpdateRequest body) {
+        var incoming = new MedicalCenter();
         mapper.updateEntityFromDto(body, incoming);
-
-        MedicalCenter saved = writeService.update(id, incoming);
-        return mapper.toRead(saved);
+        var saved = writeService.update(id, incoming); // @Version protege
+        return ResponseEntity.ok()
+                .eTag("\"" + saved.getVersion() + "\"")
+                .body(mapper.toRead(saved));
     }
 
     @RequireRole("ADMIN")
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         writeService.softDelete(id);
+        return ResponseEntity.noContent().build();
     }
 }
-
