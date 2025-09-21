@@ -40,4 +40,12 @@ public class Patient {
 
     @Column(name="center_id",nullable = false)
     private Long centerId;
+
+    @Column(name="deleted")
+    private Boolean deleted;
+
+    @PrePersist
+    public void prePersist() {
+        this.deleted = false;
+    }
 }

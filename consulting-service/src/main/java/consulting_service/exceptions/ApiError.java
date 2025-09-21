@@ -1,5 +1,6 @@
 package consulting_service.exceptions;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,6 +18,8 @@ public class ApiError {
     private String detail;
     private String instance;
     private Instant timestamp;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Map<String, String[]> errors;
 
     public ApiError(String type, String title, int status, String detail, String instance, Map<String, String[]> errors) {

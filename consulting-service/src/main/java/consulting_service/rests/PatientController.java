@@ -1,8 +1,12 @@
 package consulting_service.rests;
 
+import consulting_service.dtos.request.PatientRequestDTO;
+import consulting_service.dtos.response.PatientResponseDTO;
 import consulting_service.entities.Patient;
+import consulting_service.mappers.PatientMapper;
 import consulting_service.services.PatientService;
 import consulting_service.services.PatientServiceImp;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,9 +19,10 @@ import java.util.Map;
 public class PatientController {
 
     private final PatientService service;
-
-    public PatientController(PatientServiceImp service) {
+    private final PatientMapper mapper;
+    public PatientController(PatientServiceImp service,PatientMapper mapper) {
         this.service = service;
+        this.mapper = mapper;
     }
 
     @GetMapping
@@ -42,4 +47,16 @@ public class PatientController {
         return ResponseEntity.ok(patient);
 
     }
+
+    @PostMapping
+    public ResponseEntity<PatientResponseDTO> addPatient(@Valid  @RequestBody PatientRequestDTO request) {
+
+        Patient patient = service.addPatient(request);
+
+        PatientResponseDTO response = mapper.toDTO(patient);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+    }
+
 }
