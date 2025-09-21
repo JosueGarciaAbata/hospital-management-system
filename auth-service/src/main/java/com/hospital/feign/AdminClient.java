@@ -9,6 +9,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient(name = "admin-service", fallback = AdminClientFallback.class)
 public interface AdminClient {
 
-    @GetMapping("/admin/centers/{id}")
+    @GetMapping("/admin/centers/validate/{id}")
     ResponseEntity<Void> validateCenterId(@PathVariable Long id);
 }

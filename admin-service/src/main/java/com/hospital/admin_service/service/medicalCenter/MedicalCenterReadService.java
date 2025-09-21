@@ -35,4 +35,8 @@ public class MedicalCenterReadService {
                         HttpStatus.NOT_FOUND, "El Centro Médico no existe."
                 ));
     }
+
+    public boolean existsById(Long id) {
+        return repository.existsById(id);
+    }
 }
