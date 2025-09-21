@@ -1,9 +1,8 @@
-package consulting_service.services;
+package consulting_service.services.Patient;
 
 import consulting_service.dtos.request.PatientRequestDTO;
+import consulting_service.dtos.response.PatientResponseDTO;
 import consulting_service.entities.Patient;
-import consulting_service.repositories.PatientRepository;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -15,5 +14,5 @@ public interface PatientService {
     List<Patient> getPatients(Long centerId);
     Patient  updatePatient(Long id,PatientRequestDTO request);
     void  deletePatient(Long id);
-
+    PatientResponseDTO getPatientTC(Long id);
 }
