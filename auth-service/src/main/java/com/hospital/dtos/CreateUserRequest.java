@@ -1,6 +1,7 @@
 package com.hospital.dtos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.hospital.annotations.EcuadorianDni;
 import com.hospital.enums.GenderType;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
@@ -12,6 +13,7 @@ import java.util.Set;
 @Setter
 public class CreateUserRequest {
 
+    @EcuadorianDni()
     @NotBlank(message = "El DNI no puede estar vacío")
     @Size(min = 3, max = 10, message = "El DNI debe tener entre 3 y 10 caracteres")
     private String username;

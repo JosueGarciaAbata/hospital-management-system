@@ -7,6 +7,7 @@ import com.hospital.entities.Role;
 import com.hospital.entities.User;
 import com.hospital.enums.GenderType;
 import com.hospital.exceptions.CenterIdNotFoundException;
+import com.hospital.exceptions.DniAlreadyExistsException;
 import com.hospital.exceptions.ServiceUnavailableException;
 import com.hospital.exceptions.UserNotFoundException;
 import com.hospital.feign.AdminServiceWrapper;
@@ -33,6 +34,11 @@ public class UserServiceImp implements UserService {
     @Override
     public User register(CreateUserRequest request) {
         User user = mapper.toUser(request);
+
+        boolean exists = this.repository.existsByUsername(user.getUsername());
+        if (exists) {
+            throw new DniAlreadyExistsException("User with DNI " + user.getUsername() + " already exists.");
+        }
 
         // Antes de guardar, ver que ese centroId exista en el microservicio de administracion.
         Long centerId = user.getCenterId();
