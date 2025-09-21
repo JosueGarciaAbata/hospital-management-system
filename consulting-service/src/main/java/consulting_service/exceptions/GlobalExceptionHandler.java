@@ -42,6 +42,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(apiError);
     }
 
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleNotFound(NotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("detail", ex.getMessage()));
+    }
+
 //    // Ejemplo de error de negocio tipo token expirado
 //    @ExceptionHandler(TokenExpiredException.class)
 //    public ResponseEntity<ApiError> handleTokenExpired(TokenExpiredException ex) {

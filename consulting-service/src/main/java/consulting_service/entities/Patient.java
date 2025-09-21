@@ -36,7 +36,7 @@ public class Patient {
 
     @NotNull
     @Enumerated( EnumType.STRING)
-    private GenderType genderType;
+    private GenderType gender;
 
     @Column(name="center_id",nullable = false)
     private Long centerId;
