@@ -1,4 +1,4 @@
-package com.hospital.admin_service.validation.implement;
+package com.hospital.admin_service.validation.validator;
 
 import com.hospital.admin_service.validation.annotation.UniqueValue;
 import jakarta.persistence.EntityManager;

@@ -1,6 +1,6 @@
 package com.hospital.admin_service.mapper;
 
-import com.hospital.admin_service.DTO.specialty.*;
+import com.hospital.admin_service.dto.specialty.*;
 import com.hospital.admin_service.model.Specialty;
 import org.mapstruct.*;
 

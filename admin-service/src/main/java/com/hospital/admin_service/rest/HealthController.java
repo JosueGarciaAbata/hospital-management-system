@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin")
-public class AdminController {
+public class HealthController {
 
     @GetMapping("/ping")
     @RequireRole({"ADMIN"}) // sólo deja pasar si X-Roles contiene ADMIN

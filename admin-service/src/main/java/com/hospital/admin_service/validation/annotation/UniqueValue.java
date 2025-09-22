@@ -1,6 +1,6 @@
 package com.hospital.admin_service.validation.annotation;
 
-import com.hospital.admin_service.validation.implement.UniqueValueValidator;
+import com.hospital.admin_service.validation.validator.UniqueValueValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 

@@ -1,8 +1,8 @@
 package com.hospital.admin_service.rest;
 
-import com.hospital.admin_service.DTO.specialty.SpecialtyCreateRequest;
-import com.hospital.admin_service.DTO.specialty.SpecialtyRead;
-import com.hospital.admin_service.DTO.specialty.SpecialtyUpdateRequest;
+import com.hospital.admin_service.dto.specialty.SpecialtyCreateRequest;
+import com.hospital.admin_service.dto.specialty.SpecialtyRead;
+import com.hospital.admin_service.dto.specialty.SpecialtyUpdateRequest;
 import com.hospital.admin_service.mapper.SpecialtyMapper;
 import com.hospital.admin_service.model.Specialty;
 import com.hospital.admin_service.security.filters.RequireRole;
