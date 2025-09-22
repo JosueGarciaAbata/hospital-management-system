@@ -5,6 +5,8 @@ import consulting_service.dtos.request.PatientRequestDTO;
 import consulting_service.dtos.response.MedicalConsultations.MedicalConsultationResponseDTO;
 import consulting_service.dtos.response.PatientResponseDTO;
 import consulting_service.entities.Patient;
+import consulting_service.feign.admin_service.dtos.DoctorRead;
+import consulting_service.feign.admin_service.services.DoctorServiceClient;
 import consulting_service.security.annotations.RolesAllowed;
 import consulting_service.services.MedicalConsultations.MedicalConsultationsService;
 import jakarta.validation.Valid;
@@ -20,23 +22,32 @@ import java.util.Map;
 public class MedicalConsultationController {
 
     private final MedicalConsultationsService service;
+    private final DoctorServiceClient doctorServiceClient;
 
-    public MedicalConsultationController(MedicalConsultationsService service) {
+    public MedicalConsultationController(MedicalConsultationsService service, DoctorServiceClient doctorServiceClient) {
         this.service = service;
+        this.doctorServiceClient = doctorServiceClient;
     }
 
     @RolesAllowed("DOCTOR")
     @GetMapping
     public ResponseEntity<?> getMedicalConsultations(@RequestParam Long doctorId) {
         List<MedicalConsultationResponseDTO> medicalConsultations = service.getMedicalConsultations(doctorId);
-
-        if (medicalConsultations.isEmpty()) {
-            Map<String, String> response = Map.of(
-                    "detail", "Sin consultas médicas"
-            );
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
         return ResponseEntity.ok(medicalConsultations);
+    }
+
+    @RolesAllowed("DOCTOR")
+    @GetMapping("/center-has-consultations/{centerId}")
+    public ResponseEntity<Void> checkCenter(@PathVariable Long centerId) {
+        boolean exists = service.centerHasConsultations(centerId);
+        return exists ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+    }
+
+    @RolesAllowed("DOCTOR")
+    @GetMapping("/doctor-has-consultations/{doctorId}")
+    public ResponseEntity<Void> checkDoctor(@PathVariable Long doctorId) {
+        boolean exists = service.doctorHasConsultations(doctorId);
+        return exists ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
 
     @RolesAllowed("DOCTOR")
@@ -49,6 +60,9 @@ public class MedicalConsultationController {
 
     }
 
+
+
+    @RolesAllowed("DOCTOR")
     @PostMapping
     public ResponseEntity<MedicalConsultationResponseDTO> addMedicalConsultation(@Valid @RequestBody MedicalConsultationRequestDTO request) {
 
@@ -57,7 +71,7 @@ public class MedicalConsultationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
     }
-
+    @RolesAllowed("DOCTOR")
     @PutMapping("/{id}")
     public ResponseEntity<MedicalConsultationResponseDTO> updateMedicalConsultation(@PathVariable Long id,@Valid  @RequestBody MedicalConsultationRequestDTO request) {
 
@@ -66,10 +80,13 @@ public class MedicalConsultationController {
         return ResponseEntity.ok(response);
     }
 
+    @RolesAllowed("DOCTOR")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMedicalConsultation(@PathVariable Long id) {
         service.deleteMedicalConsultation(id);
         return ResponseEntity.noContent().build();
     }
+
+
 
 }
