@@ -74,13 +74,31 @@ CREATE TABLE users_roles (
 );
 
 -- Table: Doctors
+DROP TABLE IF EXISTS doctors CASCADE;
+
 CREATE TABLE doctors (
-                         id BIGSERIAL PRIMARY KEY,
-                         user_id BIGINT NOT NULL UNIQUE,
-                         specialty_id BIGINT NOT NULL,
-                         CONSTRAINT fk_doctor_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-                         CONSTRAINT fk_doctor_specialty FOREIGN KEY (specialty_id) REFERENCES specialties(id) ON DELETE SET NULL
+                         id           BIGSERIAL PRIMARY KEY,
+                         user_id      BIGINT NOT NULL UNIQUE,
+                         specialty_id BIGINT,
+                         created_at   TIMESTAMP NOT NULL DEFAULT now(),
+                         updated_at   TIMESTAMP NOT NULL DEFAULT now(),
+                         deleted      BOOLEAN NOT NULL DEFAULT FALSE,
+                         version      BIGINT  NOT NULL DEFAULT 0, -- Optimistic Locking
+
+                         CONSTRAINT fk_doctor_user FOREIGN KEY (user_id)
+                             REFERENCES users(id) ON DELETE CASCADE,
+
+                         CONSTRAINT fk_doctor_specialty FOREIGN KEY (specialty_id)
+                             REFERENCES specialties(id) ON DELETE SET NULL
 );
+
+-- Un doctor está ligado a un usuario único
+CREATE UNIQUE INDEX uq_doctor_user_active
+    ON doctors (user_id) WHERE deleted = FALSE;
+
+-- Búsquedas frecuentes por especialidad
+CREATE INDEX idx_doctors_specialty
+    ON doctors (specialty_id) WHERE deleted = FALSE;
 
 -- Table: Patients
 CREATE TABLE patients (

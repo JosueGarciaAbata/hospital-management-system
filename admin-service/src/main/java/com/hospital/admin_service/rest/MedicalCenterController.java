@@ -1,8 +1,8 @@
 package com.hospital.admin_service.rest;
 
-import com.hospital.admin_service.DTO.medicalCenter.MedicalCenterCreateRequest;
-import com.hospital.admin_service.DTO.medicalCenter.MedicalCenterRead;
-import com.hospital.admin_service.DTO.medicalCenter.MedicalCenterUpdateRequest;
+import com.hospital.admin_service.dto.medicalCenter.MedicalCenterCreateRequest;
+import com.hospital.admin_service.dto.medicalCenter.MedicalCenterRead;
+import com.hospital.admin_service.dto.medicalCenter.MedicalCenterUpdateRequest;
 import com.hospital.admin_service.mapper.MedicalCenterMapper;
 import com.hospital.admin_service.model.MedicalCenter;
 import com.hospital.admin_service.security.filters.RequireRole;
@@ -84,12 +84,11 @@ public class MedicalCenterController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/validateee/{id}")
+    @GetMapping("/validate/{id}")
     public ResponseEntity<Void> validateCenterId(@PathVariable Long id) {
         if (!readService.existsById(id)) {
             return ResponseEntity.notFound().build(); // 404 Not Found
         }
-
         return ResponseEntity.ok().build(); // 200 OK
     }
 }

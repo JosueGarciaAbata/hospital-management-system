@@ -1,11 +1,14 @@
-package com.hospital.admin_service.DTO.medicalCenter;
+package com.hospital.admin_service.dto.medicalCenter;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.hospital.admin_service.model.MedicalCenter;
 import com.hospital.admin_service.validation.annotation.UniqueValue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record MedicalCenterCreateRequest(
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+public record MedicalCenterUpdateRequest(
         @NotBlank(message = "Nombre requerido")
         @Size(max = 100, message = "máx 100")
         @UniqueValue(entity = MedicalCenter.class, field = "name", message = "Nombre ya registrado")
