@@ -29,6 +29,25 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/users/by-center/{id}")
+    public ResponseEntity<UserResponse> getUserByCenterId(
+            @PathVariable Long id,
+            @RequestParam(name = "includeDisabled", defaultValue = "false") boolean includeDisabled) {
+
+        UserResponse response = mapper.toUserResponse(service.findUserByCenterId(id, includeDisabled));
+        return ResponseEntity.ok(response);
+    }
+
+    @RequestMapping(value = "/users/by-center/{id}/exists", method = RequestMethod.HEAD)
+    public ResponseEntity<Void> existsUserByCenter(
+            @PathVariable Long id,
+            @RequestParam(name = "includeDisabled", defaultValue = "false") boolean includeDisabled) {
+
+        boolean exists = service.existsUserByCenterId(id, includeDisabled);
+        return exists ? ResponseEntity.noContent().build()
+                : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@RequestBody @Valid CreateUserRequest request) {
         UserResponse response = mapper.toUserResponse(this.service.register(request));
@@ -47,10 +66,14 @@ public class UserController {
         this.service.updatePassword(id, request);
         return ResponseEntity.noContent().build();
     }
-
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        this.service.disableUser(id);
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id,
+                                           @RequestParam(name = "hard", defaultValue = "false") boolean hard) {
+        if (hard) {
+            this.service.hardDeleteUser(id);
+        } else {
+            this.service.disableUser(id);
+        }
         return ResponseEntity.noContent().build();
     }
 }
