@@ -10,7 +10,6 @@ import com.hospital.exceptions.TokenNotFoundException;
 import com.hospital.exceptions.UserNotFoundException;
 import com.hospital.repositories.VerificationTokenRepository;
 import com.hospital.repositories.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -27,8 +26,8 @@ import java.util.UUID;
 public class DefaultPasswordResetService implements PasswordResetService {
 
     private final UserService userService;
-    @Value("${API_URL}")
-    private String apiUrl;
+    @Value("${FRONTEND_URL}")
+    private String frontendUrl;
 
     private final VerificationTokenRepository repository;
     private final UserRepository userRepository;
@@ -67,7 +66,7 @@ public class DefaultPasswordResetService implements PasswordResetService {
         User user = userRepository.findByUsernameOrEmail(input).orElseThrow(() -> new UserNotFoundException("Usuario no encontrado: " + input));
         VerificationToken token = this.generateForUser(user.getId());
 
-        String resetUrl = this.apiUrl + "/reset?token=" + token.getToken();
+        String resetUrl = this.frontendUrl + "/reset?token=" + token.getToken();
 
         try {
             ClassPathResource resource = new ClassPathResource("templates/emails/password-reset.html");
