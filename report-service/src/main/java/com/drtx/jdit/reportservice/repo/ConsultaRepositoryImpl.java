@@ -21,21 +21,22 @@ public class ConsultaRepositoryImpl implements ConsultaRepository {
 
     @Override
     public List<ConsultaEspecialidadDTO> getConsultasPorEspecialidad(String token) {
-        return consultingServiceClient.getConsultasByEspecialidad(token);
+        return consultingServiceClient.getConsultasByEspecialidad(token, ConsultingServiceClient.DEFAULT_ROLE);
     }
 
     @Override
     public List<ConsultaMedicoDTO> getConsultasPorMedico(String token) {
-        return consultingServiceClient.getConsultasByMedico(token);
+        return consultingServiceClient.getConsultasByMedico(token, ConsultingServiceClient.DEFAULT_ROLE);
     }
 
     @Override
     public List<ConsultaCentroMedicoDTO> getConsultasPorCentro(String token) {
-        return consultingServiceClient.getConsultasByCentro(token);
+        return consultingServiceClient.getConsultasByCentro(token, ConsultingServiceClient.DEFAULT_ROLE);
     }
 
     @Override
     public List<ConsultaMensualDTO> getConsultasMensuales(String token) {
-        return consultingServiceClient.getConsultasByMes(token);
+        return consultingServiceClient.getConsultasByMes(token, ConsultingServiceClient.DEFAULT_ROLE);
     }
+
 }

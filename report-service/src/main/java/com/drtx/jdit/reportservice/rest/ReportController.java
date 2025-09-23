@@ -18,7 +18,7 @@ import java.util.List;
  * Controlador para los endpoints de reportes
  */
 @RestController
-@RequestMapping("/reportes")
+@RequestMapping("/api/report")
 @RequiredArgsConstructor
 public class ReportController {
 
