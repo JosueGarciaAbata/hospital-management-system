@@ -89,14 +89,14 @@ public class MedicalConsultationController {
         return exists ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
 
-    @RolesAllowed("DOCTOR")
+    @RolesAllowed({"ADMIN", "DOCTOR"})
     @GetMapping("/doctor-has-consultations/{doctorId}")
     public ResponseEntity<Void> checkDoctor(@PathVariable Long doctorId) {
         boolean exists = service.doctorHasConsultations(doctorId);
         return exists ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
 
-    @RolesAllowed("DOCTOR")
+    @RolesAllowed({"ADMIN", "DOCTOR"})
     @GetMapping("/{id}")
     public ResponseEntity<MedicalConsultationResponseDTO> getMedicalConsultation(@PathVariable Long id
     ) {
@@ -105,8 +105,6 @@ public class MedicalConsultationController {
         return ResponseEntity.ok(response);
 
     }
-
-
 
     @RolesAllowed("DOCTOR")
     @PostMapping
@@ -117,6 +115,7 @@ public class MedicalConsultationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
     }
+
     @RolesAllowed("DOCTOR")
     @PutMapping("/{id}")
     public ResponseEntity<MedicalConsultationResponseDTO> updateMedicalConsultation(@PathVariable Long id,@Valid  @RequestBody MedicalConsultationRequestDTO request) {
