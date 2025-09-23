@@ -13,15 +13,30 @@ import java.util.List;
 @FeignClient(name = "consulting-service")
 public interface ConsultingServiceClient {
 
-    @GetMapping("/api/consultas/especialidad")
-    List<ConsultaEspecialidadDTO> getConsultasByEspecialidad(@RequestHeader("Authorization") String token);
+    // Rol por defecto quemado (igual que tu compañero)
+    String DEFAULT_ROLE = "ADMIN";
 
-    @GetMapping("/api/consultas/medico")
-    List<ConsultaMedicoDTO> getConsultasByMedico(@RequestHeader("Authorization") String token);
+    @GetMapping("/api/consulting/reports/by-specialty")
+    List<ConsultaEspecialidadDTO> getConsultasByEspecialidad(
+            @RequestHeader("Authorization") String token,
+            @RequestHeader("X-Roles") String roles
+    );
 
-    @GetMapping("/api/consultas/centro")
-    List<ConsultaCentroMedicoDTO> getConsultasByCentro(@RequestHeader("Authorization") String token);
+    @GetMapping("/api/consulting/reports/by-doctor")
+    List<ConsultaMedicoDTO> getConsultasByMedico(
+            @RequestHeader("Authorization") String token,
+            @RequestHeader("X-Roles") String roles
+    );
 
-    @GetMapping("/api/consultas/mensuales")
-    List<ConsultaMensualDTO> getConsultasByMes(@RequestHeader("Authorization") String token);
+    @GetMapping("/api/consulting/reports/by-center")
+    List<ConsultaCentroMedicoDTO> getConsultasByCentro(
+            @RequestHeader("Authorization") String token,
+            @RequestHeader("X-Roles") String roles
+    );
+
+    @GetMapping("/api/consulting/reports/by-month")
+    List<ConsultaMensualDTO> getConsultasByMes(
+            @RequestHeader("Authorization") String token,
+            @RequestHeader("X-Roles") String roles
+    );
 }

@@ -1,5 +1,6 @@
 HELP.md
 target/
+${project.build.directory}/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -36,3 +37,14 @@ build/
 logs/
 **/logs/**
 logback-spring.xml
+
+# Documentation and scripts
+insomnia-report-tests.md
+*report*.md
+*report*.sh
+
+consulting-service-endpoints.md
+restart-*.sh
+commit-changes.sh
+fix-*.sh
+report-service-*.md
