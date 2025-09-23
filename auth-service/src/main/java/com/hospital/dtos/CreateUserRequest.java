@@ -18,6 +18,9 @@ public class CreateUserRequest {
     @Size(min = 3, max = 10, message = "El DNI debe tener entre 3 y 10 caracteres")
     private String username;
 
+    @Email(message = "El correo electrónico no es válido")
+    private String email;
+
     @NotBlank()
     @Size(min = 8,message = "La contraseña debe tener al menos 6 caracteres")
     private String password;
