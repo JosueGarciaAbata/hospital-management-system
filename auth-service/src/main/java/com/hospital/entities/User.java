@@ -3,19 +3,19 @@ package com.hospital.entities;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hospital.enums.GenderType;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.SoftDelete;
+import org.hibernate.annotations.SoftDeleteType;
 
 import java.util.*;
 
+@SoftDelete(strategy = SoftDeleteType.ACTIVE, columnName = "enabled")
 @Getter
 @Setter
 @Entity
 @Table(name = "users")
-public class User {
+public class User extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,6 +41,7 @@ public class User {
     @Column(nullable = false)
     private Long centerId;
 
+    @Column(insertable = false, updatable = false, nullable = false)
     private boolean enabled;
 
     @ManyToMany()

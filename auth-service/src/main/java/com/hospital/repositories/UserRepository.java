@@ -10,13 +10,18 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUsername(String username);
+    boolean existsByEmail(String email);
 
     Optional<User> findUserById(Long id);
 
-    Optional<User> findFirstByCenterIdAndEnabledTrue(Long centerId);
-    boolean existsByCenterIdAndEnabledTrue(Long centerId);
+    // Usuarios activos (implícito gracias a @SoftDelete)
+    Optional<User> findFirstActiveByCenterId(Long centerId);
+    boolean existsActiveByCenterId(Long centerId);
 
-    Optional<User> findFirstByCenterId(Long centerId);
+    // Usuarios incluyendo deshabilitados (usando native query)
+    @Query(value = "SELECT * FROM users u WHERE u.center_id = :centerId", nativeQuery = true)
+        Optional<User> findFirstByCenterId(Long centerId);
+    @Query(value = "SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM users u WHERE u.center_id = :centerId", nativeQuery = true)
     boolean existsByCenterId(Long centerId);
 
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.username = :input OR u.email = :input")
