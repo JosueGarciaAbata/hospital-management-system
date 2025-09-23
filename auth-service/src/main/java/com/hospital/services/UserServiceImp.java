@@ -53,57 +53,29 @@ public class UserServiceImp implements UserService {
                 .collect(Collectors.toSet());
         user.setRoles(savedRoles);
 
-<<<<<<< HEAD
-        return this.repository.save(user);
-    }
-
-    @Override
-    public User findUserByDni(String dni) {
-        return this.repository.findByUsername(dni).orElseThrow(() -> new UserByDniNotFoundException(dni));
-    }
-
-    @Override
-    public User findUserById(Long id) {
-        return this.repository.findUserById(id).orElseThrow(() -> new UserNotFoundException(id));
-    }
-
-    @Override
-    public User update(Long id, UpdateUserRequest request) {
-        User user = repository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
-
-        user.setFirstName(request.getFirstName());
-        user.setLastName(request.getLastName());
-        user.setGender(GenderType.valueOf(request.getGender()));
-        user.setCenterId(request.getCenterId());
-
-=======
->>>>>>> 288b22cbda311f198fbd3ce635230f7099e16a73
         return repository.save(user);
     }
 
     @Override
     public User findUserByDni(String dni) {
         return repository.findByUsername(dni)
-                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con DNI: " + dni));
+                .orElseThrow(() -> new UserByDniNotFoundException(dni));
     }
 
     @Override
     public User findUserById(Long id) {
         return repository.findUserById(id)
-                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con ID: " + id));
+                .orElseThrow(() -> new UserNotFoundException(id));
     }
 
     @Override
     public User findUserByCenterId(Long centerId, boolean includeDisabled) {
         if (includeDisabled) {
             return repository.findFirstByCenterId(centerId)
-                    .orElseThrow(() -> new UserNotFoundException(
-                            "Usuario (habilitado o no) no encontrado para Centro Médico ID: " + centerId));
+                    .orElseThrow(() -> new UserNotFoundException(centerId));
         }
         return repository.findFirstByCenterIdAndEnabledTrue(centerId)
-                .orElseThrow(() -> new UserNotFoundException(
-                        "Usuario habilitado no encontrado para Centro Médico ID: " + centerId));
+                .orElseThrow(() -> new UserNotFoundException(centerId));
     }
 
     @Override
@@ -116,10 +88,7 @@ public class UserServiceImp implements UserService {
     @Override
     public User update(Long id, UpdateUserRequest request) {
         User user = repository.findById(id)
-<<<<<<< HEAD
-                .orElseThrow(() -> new UserNotFoundException(id));
-=======
-                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con ID: " + id));
+                .orElseThrow(() -> new UserNotFoundException( id));
 
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
@@ -131,8 +100,7 @@ public class UserServiceImp implements UserService {
     @Override
     public void updatePassword(Long id, UpdatePasswordRequest request) {
         User user = repository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con ID: " + id));
->>>>>>> 288b22cbda311f198fbd3ce635230f7099e16a73
+                .orElseThrow(() -> new UserNotFoundException(id));
 
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             throw new IllegalArgumentException("La contraseña anterior es incorrecta.");
@@ -145,23 +113,20 @@ public class UserServiceImp implements UserService {
     @Override
     public void disableUser(Long id) {
         User user = repository.findById(id)
-<<<<<<< HEAD
                 .orElseThrow(() -> new UserNotFoundException(id));
-
         repository.delete(user);
-=======
-                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado"));
-        user.setEnabled(false);
-        repository.save(user);
->>>>>>> 288b22cbda311f198fbd3ce635230f7099e16a73
     }
 
     @Override
     @Transactional
     public void hardDeleteUser(Long id) {
         User user = repository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado"));
+                .orElseThrow(() -> new UserNotFoundException(id));
         repository.hardDeleteById(user.getId());
     }
-}
 
+    @Override
+    public User findByUsername(String username) {
+        return this.findByUsername(username);
+    }
+}

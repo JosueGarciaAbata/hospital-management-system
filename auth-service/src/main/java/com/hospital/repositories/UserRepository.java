@@ -19,8 +19,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findFirstByCenterId(Long centerId);
     boolean existsByCenterId(Long centerId);
 
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.username = :username")
-    Optional<User> findByUsername(String username);
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.username = :input OR u.email = :input")
+    Optional<User> findByUsernameOrEmail(@Param("input") String input);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = "DELETE FROM users WHERE id = :userId", nativeQuery = true)

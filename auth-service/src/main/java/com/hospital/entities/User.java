@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.SoftDelete;
-import org.hibernate.annotations.SoftDeleteType;
 
 import java.util.*;
 
@@ -16,18 +15,18 @@ import java.util.*;
 @Setter
 @Entity
 @Table(name = "users")
-@SoftDelete(strategy = SoftDeleteType.DELETED, columnName = "enabled")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
     @Column(name = "dni", unique = true)
     private String username;
 
-    @NotBlank()
+    @Column(unique = true)
+    private String email;
+
     private String password;
 
     @Column(name = "first_name", length = 50)
@@ -42,6 +41,8 @@ public class User {
     @Column(nullable = false)
     private Long centerId;
 
+    private boolean enabled;
+
     @ManyToMany()
     @JsonIgnoreProperties({ "users", "handler", "hibernateLazyInitializer" })
     @JoinTable(name = "users_roles",
@@ -49,6 +50,11 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id"),
             uniqueConstraints = { @UniqueConstraint(columnNames = { "user_id", "role_id" }) })
     private Set<Role> roles;
+
+    @PrePersist
+    public void prePersist() {
+        this.enabled = true;
+    }
 
     public User() {
         this.roles = new HashSet<>();
