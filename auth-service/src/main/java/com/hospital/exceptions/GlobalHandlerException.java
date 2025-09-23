@@ -82,7 +82,7 @@ public class GlobalHandlerException {
         log.error("Unexpected error: ", ex.getMessage());
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
         problem.setTitle("Error inesperado");
-        problem.setDetail("Ha ocurrido un error interno, contacte al administrador.");
+        problem.setDetail("Ha ocurrido un error interno, contacte al administrador: " + ex.getMessage());
         return problem;
     }
 }

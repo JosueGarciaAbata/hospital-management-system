@@ -58,7 +58,7 @@ public class UserServiceImp implements UserService {
 
     @Override
     public User findUserByDni(String dni) {
-        return repository.findByUsername(dni)
+        return repository.findByUsernameOrEmail(dni)
                 .orElseThrow(() -> new UserByDniNotFoundException(dni));
     }
 

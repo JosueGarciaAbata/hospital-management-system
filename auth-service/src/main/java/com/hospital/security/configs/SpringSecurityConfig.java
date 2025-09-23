@@ -40,7 +40,7 @@ public class SpringSecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         // Hay que tener encuenta que solo deberia estar permitido el endpoint de login.
                         // Los otros endpoints deberian estar en otro microservicio (clara separacion de responsabilidades).
-                        .requestMatchers("/**").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilter(new JwtAuthenticationFilter(authenticationManager(), tokenJwtConfig))
                 .csrf(AbstractHttpConfigurer::disable)
