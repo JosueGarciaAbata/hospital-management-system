@@ -37,13 +37,13 @@ public class SpringSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authz -> authz
                         // Hay que tener encuenta que solo deberia estar permitido el endpoint de login.
                         // Los otros endpoints deberian estar en otro microservicio (clara separacion de responsabilidades).
                         .requestMatchers("/auth/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilter(new JwtAuthenticationFilter(authenticationManager(), tokenJwtConfig))
-                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(management ->
                         management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .build();
