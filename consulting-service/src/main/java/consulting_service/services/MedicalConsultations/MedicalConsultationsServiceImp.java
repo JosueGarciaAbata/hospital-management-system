@@ -13,6 +13,9 @@ import consulting_service.feign.auth_service.services.UserServiceClient;
 import consulting_service.mappers.MedicalConsultationMapper;
 import consulting_service.repositories.MedicalConsultationsRepository;
 import consulting_service.services.Patient.PatientService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,18 +24,19 @@ import java.util.List;
 public class MedicalConsultationsServiceImp implements MedicalConsultationsService {
 
     private final MedicalCenterServiceClient medicalCenterServiceClient;
-
     private final DoctorServiceClient doctorServiceClient;
-
     private final UserServiceClient userServiceClient;
-
     private final PatientService patientService;
     private final MedicalConsultationsRepository repository;
-
     private final MedicalConsultationMapper mapper;
 
-
-    public MedicalConsultationsServiceImp(MedicalCenterServiceClient medicalCenterServiceClient, DoctorServiceClient doctorServiceClient, UserServiceClient userServiceClient, PatientService patientService, MedicalConsultationsRepository repository, MedicalConsultationMapper mapper) {
+    public MedicalConsultationsServiceImp(
+            MedicalCenterServiceClient medicalCenterServiceClient,
+            DoctorServiceClient doctorServiceClient,
+            UserServiceClient userServiceClient,
+            PatientService patientService,
+            MedicalConsultationsRepository repository,
+            MedicalConsultationMapper mapper) {
         this.medicalCenterServiceClient = medicalCenterServiceClient;
         this.doctorServiceClient = doctorServiceClient;
         this.userServiceClient = userServiceClient;
@@ -41,136 +45,52 @@ public class MedicalConsultationsServiceImp implements MedicalConsultationsServi
         this.mapper = mapper;
     }
 
+
     @Override
-    public List<MedicalConsultationResponseDTO> getMedicalConsultations(Long doctorId) {
-
-        Long userId = doctorServiceClient.getUserId(doctorId);
-
-        DoctorReadDTO doctor = userServiceClient.getDoctorByUserId(userId);
-
-        doctor.setId(doctorId);
-
-        List<MedicalConsultation> medicalConsultations = repository.findByDoctorIdAndDeletedFalse(doctorId);
+    public Page<MedicalConsultationResponseDTO> getMedicalConsultations(Long doctorId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<MedicalConsultation> medicalConsultations = repository.findByDoctorIdAndDeletedFalse(doctorId, pageable);
 
         if (medicalConsultations.isEmpty()) {
             throw new NotFoundException("No se han encontrado consultas médicas para el doctor");
         }
 
-        Long centerId = medicalConsultations.get(0).getCenterId();
-
-        MedicalCenterReadDTO center = medicalCenterServiceClient.getName(centerId);
-
-        return medicalConsultations.stream()
-                .map(mc -> {
-
-                    MedicalConsultationResponseDTO response = mapper.toDTO(mc);
-
-                    PatientResponseDTO patient = patientService.getPatientTC(mc.getPatientId());
-                    response.setPatient(patient);
-
-                    response.setDoctor(doctor);
-
-
-                    response.setCenter(center);
-
-                    return response;
-                })
-                .toList();
-
+        return medicalConsultations.map(this::buildMedicalConsultationResponse);
     }
-
-
 
     @Override
     public MedicalConsultationResponseDTO getMedicalConsultationById(Long id) {
+        MedicalConsultation medicalConsultation = repository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new NotFoundException("Consulta no encontrada"));
 
-        MedicalConsultation medicalConsultation = repository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Consulta no encontrada"));
-
-
-        PatientResponseDTO patient = patientService.getPatientTC(medicalConsultation.getPatientId());
-
-        MedicalCenterReadDTO center = medicalCenterServiceClient.getName(medicalConsultation.getCenterId());
-
-        Long userId = doctorServiceClient.getUserId(medicalConsultation.getDoctorId());
-
-        DoctorReadDTO doctor = userServiceClient.getDoctorByUserId(userId);
-
-        doctor.setId(medicalConsultation.getDoctorId());
-
-        MedicalConsultationResponseDTO response = this.mapper.toDTO(medicalConsultation);
-
-        response.setId(userId);
-        response.setPatient(patient);
-
-        response.setDoctor(doctor);
-
-        response.setCenter(center);
-
-        return response;
+        return buildMedicalConsultationResponse(medicalConsultation);
     }
 
     @Override
     public MedicalConsultationResponseDTO addMedicalConsultation(MedicalConsultationRequestDTO request) {
-
-
-        PatientResponseDTO patient = patientService.getPatientTC(request.getPatientId());
-        MedicalCenterReadDTO center = medicalCenterServiceClient.getName(request.getCenterId());
-
-        MedicalConsultation record = this.mapper.toEntity(request);
-
-        Long userId = doctorServiceClient.getUserId(record.getDoctorId());
-
-        DoctorReadDTO doctor = userServiceClient.getDoctorByUserId(userId);
-
-        doctor.setId(record.getDoctorId());
-
+        MedicalConsultation record = mapper.toEntity(request);
         record = repository.save(record);
 
-        MedicalConsultationResponseDTO response = this.mapper.toDTO(record);
-
-        response.setPatient(patient);
-        response.setDoctor(doctor);
-        response.setCenter(center);
-
-        return response;
+        return buildMedicalConsultationResponse(record);
     }
 
     @Override
     public MedicalConsultationResponseDTO updateMedicalConsultation(Long id, MedicalConsultationRequestDTO request) {
-
-
         MedicalConsultation record = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Consulta médica no encontrada"));
-
+                .orElseThrow(() -> new NotFoundException("Consulta médica no encontrada"));
 
         mapper.updateEntityFromDto(request, record);
-
-
-        PatientResponseDTO patient = patientService.getPatientTC(request.getPatientId());
-        MedicalCenterReadDTO center = medicalCenterServiceClient.getName(request.getCenterId());
-
-        Long userId = doctorServiceClient.getUserId(record.getDoctorId());
-
-        DoctorReadDTO doctor = userServiceClient.getDoctorByUserId(userId);
-
-        doctor.setId(record.getDoctorId());
-
         repository.save(record);
 
-        MedicalConsultationResponseDTO response = this.mapper.toDTO(record);
-        response.setPatient(patient);
-        response.setDoctor(doctor);
-        response.setCenter(center);
-
-        return response;
+        return buildMedicalConsultationResponse(record);
     }
 
     @Override
     public void deleteMedicalConsultation(Long id) {
-        MedicalConsultation record = repository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Consulta no encontrada"));
+        MedicalConsultation record = repository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new NotFoundException("Consulta no encontrada"));
         record.setDeleted(true);
         repository.save(record);
-
     }
 
     @Override
@@ -181,5 +101,69 @@ public class MedicalConsultationsServiceImp implements MedicalConsultationsServi
     @Override
     public boolean doctorHasConsultations(Long doctorId) {
         return repository.existsByDoctorIdAndDeletedFalse(doctorId);
+    }
+
+    @Override
+    public Page<MedicalConsultationResponseDTO> getMedicalConsultationsByCenter(Long centerId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<MedicalConsultation> consultations = repository.findByCenterIdAndDeletedFalse(centerId, pageable);
+
+        if (consultations.isEmpty()) {
+            throw new NotFoundException("No se han encontrado consultas para el centro médico");
+        }
+
+        return consultations.map(this::buildMedicalConsultationResponse);
+    }
+
+    @Override
+    public Page<MedicalConsultationResponseDTO> getAllMedicalConsultations(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<MedicalConsultation> consultations = repository.findByDeletedFalse(pageable);
+
+        if (consultations.isEmpty()) {
+            throw new NotFoundException("No se han encontrado consultas médicas");
+        }
+
+        return consultations.map(this::buildMedicalConsultationResponse);
+    }
+
+    @Override
+    public Page<MedicalConsultationResponseDTO> getMedicalConsultationsBySpecialty(Long specialtyId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+
+        List<Long> doctorIds = doctorServiceClient.getDoctorIdsBySpecialty(specialtyId, pageable);
+
+
+        Page<MedicalConsultation> consultations = repository.findByDoctorIdInAndDeletedFalse(doctorIds, pageable);
+
+        if (consultations.isEmpty()) {
+            throw new NotFoundException("No se han encontrado consultas para la especialidad solicitada");
+        }
+
+
+        return consultations.map(this::buildMedicalConsultationResponse);
+    }
+
+
+    private MedicalConsultationResponseDTO buildMedicalConsultationResponse(MedicalConsultation mc) {
+        MedicalConsultationResponseDTO response = mapper.toDTO(mc);
+
+
+        PatientResponseDTO patient = patientService.getPatientTC(mc.getPatientId());
+        response.setPatient(patient);
+
+
+        Long userId = doctorServiceClient.getUserId(mc.getDoctorId());
+
+        DoctorReadDTO doctor = userServiceClient.getDoctorByUserId(userId);
+        doctor.setId(mc.getDoctorId());
+        response.setDoctor(doctor);
+
+
+        MedicalCenterReadDTO center = medicalCenterServiceClient.getName(mc.getCenterId());
+        response.setCenter(center);
+
+        return response;
     }
 }
