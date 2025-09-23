@@ -31,10 +31,10 @@ public class PatientController {
     * de que otro microservicio lo necesite tal vez no sea lo mas optimo
     * asi que mejor lo mando como RequestParam
     * */
-    @RolesAllowed("DOCTOR")
-    @GetMapping
-    public ResponseEntity<?> getPatients(@RequestParam Long centerId) {
-        List<Patient> patients = service.getPatients(centerId);
+    @RolesAllowed({"DOCTOR","ADMIN"})
+    @GetMapping("/by-center/{id}")
+    public ResponseEntity<?> getPatients( @PathVariable Long id) {
+        List<Patient> patients = service.getPatients(id);
 
         if (patients.isEmpty()) {
             Map<String, String> response = Map.of(
@@ -43,6 +43,13 @@ public class PatientController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
         return ResponseEntity.ok(patients);
+    }
+
+    @RolesAllowed({"DOCTOR","ADMIN"})
+    @GetMapping("/center-has-patients/{centerId}")
+    public ResponseEntity<Void> checkCenter(@PathVariable Long centerId) {
+        boolean exists = service.centerHasPatients(centerId);
+        return exists ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
 
     @RolesAllowed("DOCTOR")

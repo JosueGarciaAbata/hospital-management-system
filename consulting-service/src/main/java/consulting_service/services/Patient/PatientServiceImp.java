@@ -88,5 +88,10 @@ public class PatientServiceImp  implements  PatientService{
         return this.mapper.toDTO(patient);
     }
 
+    @Override
+    public boolean centerHasPatients(Long centerId) {
+        return repository.existsByCenterIdAndDeletedFalse(centerId);
+    }
+
 
 }

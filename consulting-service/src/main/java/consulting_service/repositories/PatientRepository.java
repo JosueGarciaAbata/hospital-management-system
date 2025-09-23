@@ -13,5 +13,6 @@ public interface PatientRepository  extends JpaRepository<Patient,Long> {
     List<Patient> findByCenterIdAndDeletedFalse(Long centerId);
     Optional<Patient> findByIdAndDeletedFalse(Long id);
     boolean existsByDni(String dni);
+    boolean existsByCenterIdAndDeletedFalse(Long centerId);
     Optional<Patient> findByDniAndIdNot(String dni, Long id);
 }

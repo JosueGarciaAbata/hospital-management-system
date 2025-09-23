@@ -115,7 +115,7 @@ public class DoctorWriteService {
             if (repository.existsByUserIdAndIdNot(newUserId, id)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ya existe otro Doctor activo con ese userId.");
             }
-            if (authUserClient.existsUserById(newUserId)) {
+            if (!authUserClient.existsUserById(newUserId)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El nuevo userId no existe en el servicio de autenticación.");
             }
             current.setUserId(newUserId);
@@ -128,21 +128,20 @@ public class DoctorWriteService {
     @Transactional
     public void softDelete(Long id) {
         Doctor current = repository.lockById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Doctor no encontrado."
-                ));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Doctor no encontrado."));
+
+        if (consultingClient.hasFutureAppointments(id)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El doctor tiene consultas futuras y no puede ser eliminado.");
+        }
 
         try {
-            if (consultingClient.hasFutureAppointments(id)) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT,
-                        "El doctor tiene consultas futuras y no puede ser eliminado.");
-            }
             authUserClient.deleteUser(current.getUserId());
             repository.delete(current);
+        } catch (ResponseStatusException rse) {
+            throw rse;
         } catch (Exception ex) {
             log.error("[DoctorWriteService] Error inesperado en softDelete: {}", ex.getMessage(), ex);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Error eliminando el doctor.", ex);
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Error comunicándose con servicios externos.", ex);
         }
     }
 

@@ -80,3 +80,12 @@ management:
     health:
       probes:
         enabled: true
+
+logging:
+  level:
+    # Logger interno de Feign (si usas Logger.Level.FULL)
+    feign: DEBUG
+    # Tus clientes (ajusta el paquete de tus @FeignClient)
+    com.hospital.admin_service.external: DEBUG
+    # El config (para ver nuestro log)
+    com.hospital.admin_service.config.FeignConfig: INFO
