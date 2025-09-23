@@ -1,10 +1,10 @@
 package com.drtx.jdit.reportservice.service.impl;
 
-import com.drtx.jdit.reportservice.client.ConsultingServiceClient;
 import com.drtx.jdit.reportservice.dto.ConsultaEspecialidadDTO;
 import com.drtx.jdit.reportservice.dto.ConsultaMedicoDTO;
 import com.drtx.jdit.reportservice.dto.ConsultaCentroMedicoDTO;
 import com.drtx.jdit.reportservice.dto.ConsultaMensualDTO;
+import com.drtx.jdit.reportservice.external.feign.ConsultingServiceClient;
 import com.drtx.jdit.reportservice.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +24,7 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public List<ConsultaEspecialidadDTO> getConsultasPorEspecialidad() {
         String token = obtenerTokenAutorizacion();
-        log.info("Obteniendo reporte de consultas por especialidad");
+        log.info("ObtenienRdo reporte de consultas por especialidad");
         return consultingServiceClient.getConsultasByEspecialidad(token);
     }
 
