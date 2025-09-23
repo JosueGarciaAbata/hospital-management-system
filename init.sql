@@ -61,6 +61,8 @@ CREATE TABLE users (
                        first_name VARCHAR(100) NOT NULL,
                        last_name VARCHAR(100) NOT NULL,
                        enabled BOOLEAN NOT NULL DEFAULT TRUE,
+                       created_at TIMESTAMP    NOT NULL DEFAULT now(),
+                       updated_at TIMESTAMP    NOT NULL DEFAULT now(),
                        center_id BIGINT NOT NULL,
                        CONSTRAINT fk_user_center FOREIGN KEY (center_id) REFERENCES medical_centers(id) ON DELETE CASCADE
 );
@@ -72,6 +74,17 @@ CREATE TABLE users_roles (
                              PRIMARY KEY (user_id, role_id),
                              CONSTRAINT fk_user_roles_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
                              CONSTRAINT fk_user_roles_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
+);
+
+CREATE TABLE verification_tokens (
+                                     id BIGSERIAL PRIMARY KEY,
+                                     user_id BIGINT NOT NULL,
+                                     token VARCHAR(255) NOT NULL,
+                                     used BOOLEAN NOT NULL,
+                                     expiration TIMESTAMP NOT NULL,
+                                     CONSTRAINT fk_verification_tokens_user
+                                         FOREIGN KEY (user_id) REFERENCES users(id)
+                                             ON DELETE CASCADE
 );
 
 -- Table: Doctors
@@ -149,7 +162,7 @@ VALUES ('Central Hospital', 'Quito', 'Av. Principal 123');
 INSERT INTO users (dni, email, password, gender, first_name, last_name, enabled, center_id)
 VALUES (
            '1500903685',
-        'josuegarcab2@hotmai.com',
+        'josuegarcab2@hotmail.com',
            crypt('admin123456789', gen_salt('bf')),
            'MALE',
            'System',

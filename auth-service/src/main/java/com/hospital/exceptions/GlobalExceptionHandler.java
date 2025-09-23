@@ -3,6 +3,7 @@ package com.hospital.exceptions;
 import feign.FeignException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.batch.BatchTaskExecutor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -13,12 +14,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 @RestControllerAdvice
-public class GlobalHandlerException {
+public class GlobalExceptionHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(GlobalHandlerException.class);
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     // Errores Feign (cuando falla otro microservicio)
     @ExceptionHandler(FeignException.class)
@@ -47,7 +47,11 @@ public class GlobalHandlerException {
     }
 
     // Recurso no encontrado (entidades)
-    @ExceptionHandler({RoleNotFoundException.class, UserNotFoundException.class, CenterIdNotFoundException.class, UserByDniNotFoundException.class})
+    @ExceptionHandler({RoleNotFoundException.class,
+            UserNotFoundException.class,
+            CenterIdNotFoundException.class,
+            UserByDniNotFoundException.class,
+            TokenNotFoundException.class})
     public ProblemDetail handleNotFound(Exception ex) {
         log.warn("Resource not found: {}", ex.getMessage());
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
@@ -61,8 +65,35 @@ public class GlobalHandlerException {
     public ProblemDetail handleAlreadyExists(Exception ex) {
         log.warn("Duplicate validation error: {}", ex.getMessage());
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        problem.setTitle("Error de validación personalizada");
+        problem.setTitle("Error de validación de duplicacion");
         problem.setDetail(ex.getMessage());
+        return problem;
+    }
+
+    @ExceptionHandler({InvalidTokenException.class})
+    public ProblemDetail handleInvalidToken(Exception ex) {
+        log.warn("Invalid token error: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problem.setTitle("Error de token inválido");
+        problem.setDetail(ex.getMessage());
+        return problem;
+    }
+
+    @ExceptionHandler(EmailTemplateException.class)
+    public ProblemDetail handleEmailTemplateException(EmailTemplateException ex) {
+        log.error("Email template error: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        problem.setTitle("Error en la plantilla de correo");
+        problem.setDetail("Hubo un problema al procesar la plantilla de correo: " + ex.getMessage());
+        return problem;
+    }
+
+    @ExceptionHandler(EmailSendingException.class)
+    public ProblemDetail handleEmailSendingException(EmailSendingException ex) {
+        log.error("Email sending error: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        problem.setTitle("Error al enviar correo");
+        problem.setDetail("No se pudo enviar el correo: " + ex.getMessage());
         return problem;
     }
 
@@ -72,9 +103,10 @@ public class GlobalHandlerException {
         log.error("Data integrity violation: {}", ex.getMessage());
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.CONFLICT);
         problem.setTitle("Violación de integridad de datos");
-        problem.setDetail("No se puede completar la operación debido a restricciones en la base de datos.");
+        problem.setDetail("No se puede completar la operación debido a restricciones en la base de datos: " + ex.getMostSpecificCause().getMessage());
         return problem;
     }
+
 
     // Fallback general
     @ExceptionHandler(Exception.class)

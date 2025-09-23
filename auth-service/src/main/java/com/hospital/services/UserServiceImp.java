@@ -1,7 +1,6 @@
 package com.hospital.services;
 
 import com.hospital.dtos.CreateUserRequest;
-import com.hospital.dtos.UpdatePasswordRequest;
 import com.hospital.dtos.UpdateUserRequest;
 import com.hospital.entities.Role;
 import com.hospital.entities.User;
@@ -35,6 +34,10 @@ public class UserServiceImp implements UserService {
 
         if (repository.existsByUsername(user.getUsername())) {
             throw new DniAlreadyExistsException("Ya existe un usuario con DNI " + user.getUsername());
+        }
+
+        if (repository.existsByEmail(user.getEmail())) {
+            throw new EmailAlreadyExistsException("Ya existe un usuario asoociado con ese email  " + user.getEmail());
         }
 
         Long centerId = user.getCenterId();
@@ -74,7 +77,7 @@ public class UserServiceImp implements UserService {
             return repository.findFirstByCenterId(centerId)
                     .orElseThrow(() -> new UserNotFoundException(centerId));
         }
-        return repository.findFirstByCenterIdAndEnabledTrue(centerId)
+        return repository.findFirstActiveByCenterId(centerId)
                 .orElseThrow(() -> new UserNotFoundException(centerId));
     }
 
@@ -82,7 +85,7 @@ public class UserServiceImp implements UserService {
     public boolean existsUserByCenterId(Long centerId, boolean includeDisabled) {
         return includeDisabled
                 ? repository.existsByCenterId(centerId)
-                : repository.existsByCenterIdAndEnabledTrue(centerId);
+                : repository.existsActiveByCenterId(centerId);
     }
 
     @Override
@@ -98,15 +101,15 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public void updatePassword(Long id, UpdatePasswordRequest request) {
+    public void updatePassword(Long id, String newPass) {
         User user = repository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
 
-        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("La contraseña anterior es incorrecta.");
+        if (passwordEncoder.matches(newPass, user.getPassword())) {
+            throw new IllegalArgumentException("La nueva contraseña no puede ser igual a la anterior.");
         }
 
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setPassword(passwordEncoder.encode(newPass));
         repository.save(user);
     }
 
