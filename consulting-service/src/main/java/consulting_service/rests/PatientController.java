@@ -32,7 +32,7 @@ public class PatientController {
     * de que otro microservicio lo necesite tal vez no sea lo mas optimo
     * asi que mejor lo mando como RequestParam
     * */
-    @RolesAllowed("DOCTOR")
+    @RolesAllowed({"ADMIN", "DOCTOR"})
     @GetMapping
     public ResponseEntity<?> getPatients(
             @RequestParam Long centerId,
@@ -51,7 +51,7 @@ public class PatientController {
     }
 
 
-    @RolesAllowed("DOCTOR")
+    @RolesAllowed({"ADMIN", "DOCTOR"})
     @GetMapping("/{id}")
     public ResponseEntity<Patient> getPatient(@PathVariable Long id
                                              ) {
@@ -60,6 +60,7 @@ public class PatientController {
         return ResponseEntity.ok(patient);
 
     }
+
     @RolesAllowed("DOCTOR")
     @PostMapping
     public ResponseEntity<PatientResponseDTO> addPatient(@Valid  @RequestBody PatientRequestDTO request) {
