@@ -15,4 +15,5 @@ public interface UserService {
      void updatePassword(Long id, UpdatePasswordRequest request);
      void disableUser(Long id);
      void hardDeleteUser(Long id);
+     User findByUsername(String username);
 }

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.SoftDelete;
 
 import java.util.*;
 
@@ -20,11 +21,12 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
     @Column(name = "dni", unique = true)
     private String username;
 
-    @NotBlank()
+    @Column(unique = true)
+    private String email;
+
     private String password;
 
     @Column(name = "first_name", length = 50)

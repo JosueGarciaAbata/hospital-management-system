@@ -10,6 +10,7 @@ import consulting_service.feign.admin_service.services.DoctorServiceClient;
 import consulting_service.security.annotations.RolesAllowed;
 import consulting_service.services.MedicalConsultations.MedicalConsultationsService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,12 +32,57 @@ public class MedicalConsultationController {
 
     @RolesAllowed("DOCTOR")
     @GetMapping
-    public ResponseEntity<?> getMedicalConsultations(@RequestParam Long doctorId) {
-        List<MedicalConsultationResponseDTO> medicalConsultations = service.getMedicalConsultations(doctorId);
+    public ResponseEntity<Page<MedicalConsultationResponseDTO>> getMedicalConsultations(
+            @RequestParam Long doctorId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<MedicalConsultationResponseDTO> medicalConsultations =
+                service.getMedicalConsultations(doctorId, page, size);
+
         return ResponseEntity.ok(medicalConsultations);
     }
 
     @RolesAllowed({"DOCTOR","ADMIN"})
+    @GetMapping("/by-center/{centerId}")
+    public ResponseEntity<Page<MedicalConsultationResponseDTO>> getConsultationsByCenter(
+            @PathVariable Long centerId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<MedicalConsultationResponseDTO> consultations =
+                service.getMedicalConsultationsByCenter(centerId, page, size);
+
+        return ResponseEntity.ok(consultations);
+    }
+
+    @RolesAllowed("DOCTOR")
+    @GetMapping("/all")
+    public ResponseEntity<Page<MedicalConsultationResponseDTO>> getAllConsultations(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<MedicalConsultationResponseDTO> consultations =
+                service.getAllMedicalConsultations(page, size);
+
+        return ResponseEntity.ok(consultations);
+    }
+
+    @RolesAllowed("DOCTOR")
+    @GetMapping("/by-specialty/{specialtyId}")
+    public ResponseEntity<Page<MedicalConsultationResponseDTO>> getConsultationsBySpecialty(
+            @PathVariable Long specialtyId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<MedicalConsultationResponseDTO> consultations =
+                service.getMedicalConsultationsBySpecialty(specialtyId, page, size);
+
+        return ResponseEntity.ok(consultations);
+    }
+
+
+    @RolesAllowed("DOCTOR")
     @GetMapping("/center-has-consultations/{centerId}")
     public ResponseEntity<Void> checkCenter(@PathVariable Long centerId) {
         boolean exists = service.centerHasConsultations(centerId);

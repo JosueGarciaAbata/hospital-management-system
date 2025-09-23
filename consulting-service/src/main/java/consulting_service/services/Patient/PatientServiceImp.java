@@ -7,6 +7,11 @@ import consulting_service.exceptions.DuplicateDniException;
 import consulting_service.exceptions.NotFoundException;
 import consulting_service.mappers.PatientMapper;
 import consulting_service.repositories.PatientRepository;
+
+import org.springframework.data.domain.PageRequest;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,12 +26,6 @@ public class PatientServiceImp  implements  PatientService{
         this.mapper = mapper;
     }
 
-    @Override
-    public List<Patient> getPatients(Long centerId) {
-
-        return repository.findByCenterIdAndDeletedFalse(centerId);
-    }
-
 
     @Override
     public Patient getPatient( Long id) {
@@ -35,6 +34,12 @@ public class PatientServiceImp  implements  PatientService{
        );
     }
 
+    @Override
+    public Page<PatientResponseDTO> getPatients(Long centerId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return repository.findByCenterIdAndDeletedFalse(centerId, pageable)
+                .map(mapper::toDTO);
+    }
 
     @Override
     public Patient addPatient(PatientRequestDTO request) {
