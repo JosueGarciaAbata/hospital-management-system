@@ -12,7 +12,8 @@ public interface UserService {
      User findUserByCenterId(Long centerId, boolean includeDisabled);
      boolean existsUserByCenterId(Long centerId, boolean includeDisabled);
      User update(Long id, UpdateUserRequest request);
-     void updatePassword(Long id, UpdatePasswordRequest request);
+     void updatePassword(Long id, String newPass);
      void disableUser(Long id);
      void hardDeleteUser(Long id);
+     User findByUsername(String username);
 }

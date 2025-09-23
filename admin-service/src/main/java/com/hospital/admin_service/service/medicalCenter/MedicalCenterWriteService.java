@@ -2,6 +2,7 @@ package com.hospital.admin_service.service.medicalCenter;
 
 import com.hospital.admin_service.external.port.IAuthUserClient;
 import com.hospital.admin_service.external.port.IConsultingClient;
+import com.hospital.admin_service.external.port.IPatientClient;
 import com.hospital.admin_service.mapper.MedicalCenterMapper;
 import com.hospital.admin_service.model.MedicalCenter;
 import com.hospital.admin_service.repo.MedicalCenterRepository;
@@ -21,6 +22,7 @@ public class MedicalCenterWriteService {
     private final MedicalCenterRepository repository;
     private final IAuthUserClient authUserClient;
     private final IConsultingClient consultingClient;
+    private final IPatientClient patientClient;
     private final MedicalCenterMapper mapper;
 
     /** CREATE (sin bloqueos; @Version maneja desde la primera inserción) */
@@ -72,14 +74,14 @@ public class MedicalCenterWriteService {
                         "No se puede eliminar: existen usuarios activos vinculados al centro.");
             }
 
-            if (consultingClient.hasActivePatientsInCenter(id)) {
+            if (patientClient.hasActivePatientsInCenter(id)) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT,
                         "No se puede eliminar: existen pacientes activos en el centro.");
             }
 
-            if (consultingClient.hasFutureAppointmentsInCenter(id)) {
+            if (consultingClient.hasActiveAppointmentsInCenter(id)) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT,
-                        "No se puede eliminar: existen consultas futuras agendadas en este centro.");
+                        "No se puede eliminar: existen consultas asignadas este centro.");
             }
             repository.delete(current);
 
