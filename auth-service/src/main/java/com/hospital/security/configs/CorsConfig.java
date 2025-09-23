@@ -13,7 +13,6 @@ import org.springframework.web.filter.CorsFilter;
 
 import java.util.List;
 
-@Configuration
 public class CorsConfig {
 
     @Value("${FRONTEND_URL}")
@@ -26,7 +25,6 @@ public class CorsConfig {
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
-        config.setExposedHeaders(List.of("Authorization"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

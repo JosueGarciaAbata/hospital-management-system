@@ -15,14 +15,6 @@ spring:
 
   cloud:
     gateway:
-      globalcors:
-        add-to-simple-url-handler-mapping: true
-        cors-configurations:
-          '[/**]':
-            allowedOrigins: ${FRONTEND_URL}
-            allowedMethods: "*"
-            allowedHeaders: "*"
-            allowCredentials: true
       routes:
         - id: auth-service
           uri: ${GATEWAY_URI_AUTH_SERVICE}
