@@ -82,7 +82,7 @@ public class MedicalConsultationController {
     }
 
 
-    @RolesAllowed("DOCTOR")
+    @RolesAllowed({"DOCTOR","ADMIN"})
     @GetMapping("/center-has-consultations/{centerId}")
     public ResponseEntity<Void> checkCenter(@PathVariable Long centerId) {
         boolean exists = service.centerHasConsultations(centerId);
