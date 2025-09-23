@@ -1,6 +1,7 @@
 package com.hospital.admin_service.service.specialty;
 
 import com.hospital.admin_service.model.Specialty;
+import com.hospital.admin_service.repo.DoctorRepository;
 import com.hospital.admin_service.repo.SpecialtyRepository;
 import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class SpecialtyWriteService {
 
     private final SpecialtyRepository repository;
+    private final DoctorRepository doctorRepository;
 
     /** CREATE (optimista por defecto: @Version arranca en inserts) */
     @Transactional
@@ -55,13 +57,20 @@ public class SpecialtyWriteService {
         return repository.save(current);
     }
 
-    /** DELETE lógico con PESSIMISTIC_WRITE para evitar doble borrado */
     @Transactional
     public void softDelete(Long id) {
         Specialty current = repository.lockById(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Especialidad no encontrada."
                 ));
+        long activeDoctors = doctorRepository.countBySpecialty_Id(id);
+        if (activeDoctors > 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "No se puede eliminar la especialidad: existen " + activeDoctors + " doctores activos vinculados."
+            );
+        }
+
         repository.delete(current);
     }
 }

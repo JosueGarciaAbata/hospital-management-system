@@ -1,8 +1,8 @@
 package com.hospital.admin_service.mapper;
 
-import com.hospital.admin_service.DTO.medicalCenter.MedicalCenterCreateRequest;
-import com.hospital.admin_service.DTO.medicalCenter.MedicalCenterRead;
-import com.hospital.admin_service.DTO.medicalCenter.MedicalCenterUpdateRequest;
+import com.hospital.admin_service.dto.medicalCenter.MedicalCenterCreateRequest;
+import com.hospital.admin_service.dto.medicalCenter.MedicalCenterRead;
+import com.hospital.admin_service.dto.medicalCenter.MedicalCenterUpdateRequest;
 import com.hospital.admin_service.model.MedicalCenter;
 import org.mapstruct.*;
 

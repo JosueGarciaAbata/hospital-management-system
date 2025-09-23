@@ -1,23 +1,26 @@
 package com.hospital.admin_service.service.medicalCenter;
 
-import com.hospital.admin_service.DTO.medicalCenter.MedicalCenterCreateRequest;
-import com.hospital.admin_service.DTO.medicalCenter.MedicalCenterRead;
-import com.hospital.admin_service.DTO.medicalCenter.MedicalCenterUpdateRequest;
+import com.hospital.admin_service.external.port.IAuthUserClient;
+import com.hospital.admin_service.external.port.IConsultingClient;
 import com.hospital.admin_service.mapper.MedicalCenterMapper;
 import com.hospital.admin_service.model.MedicalCenter;
 import com.hospital.admin_service.repo.MedicalCenterRepository;
 import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MedicalCenterWriteService {
 
     private final MedicalCenterRepository repository;
+    private final IAuthUserClient authUserClient;
+    private final IConsultingClient consultingClient;
     private final MedicalCenterMapper mapper;
 
     /** CREATE (sin bloqueos; @Version maneja desde la primera inserción) */
@@ -60,7 +63,32 @@ public class MedicalCenterWriteService {
     @Transactional
     public void softDelete(Long id) {
         MedicalCenter current = repository.lockById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Centro Médico no encontrado."));
-        repository.delete(current);
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Centro Médico no encontrado."));
+
+        try {
+            if (authUserClient.hasActiveUsersInCenter(id)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "No se puede eliminar: existen usuarios activos vinculados al centro.");
+            }
+
+            if (consultingClient.hasActivePatientsInCenter(id)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "No se puede eliminar: existen pacientes activos en el centro.");
+            }
+
+            if (consultingClient.hasFutureAppointmentsInCenter(id)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "No se puede eliminar: existen consultas futuras agendadas en este centro.");
+            }
+            repository.delete(current);
+
+        } catch (ResponseStatusException rse) {
+            throw rse; // ya mapea el status correcto
+        } catch (Exception ex) {
+            log.error("[MedicalCenterWriteService] Error en softDelete centerId={}: {}", id, ex.getMessage(), ex);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error eliminando el centro médico.", ex);
+        }
     }
 }

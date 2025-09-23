@@ -5,9 +5,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -28,7 +30,10 @@ public class RoleCheckAspect {
                 .allMatch(userRoles::contains);
                //si se necesita al menos uno entonces cambiar por any
         if (!allowed) {
-            throw new RuntimeException("El usuario no cuenta con el/los roles necesarios para acceder a este endpoint");
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "El usuario no cuenta con el/los roles necesarios para acceder a este endpoint"
+            );
         }
 
         return joinPoint.proceed();

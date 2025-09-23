@@ -1,0 +1,92 @@
+package consulting_service.rests;
+
+import consulting_service.dtos.request.MedicalConsultationRequestDTO;
+import consulting_service.dtos.request.PatientRequestDTO;
+import consulting_service.dtos.response.MedicalConsultations.MedicalConsultationResponseDTO;
+import consulting_service.dtos.response.PatientResponseDTO;
+import consulting_service.entities.Patient;
+import consulting_service.feign.admin_service.dtos.DoctorRead;
+import consulting_service.feign.admin_service.services.DoctorServiceClient;
+import consulting_service.security.annotations.RolesAllowed;
+import consulting_service.services.MedicalConsultations.MedicalConsultationsService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/consulting/medical-consultations")
+public class MedicalConsultationController {
+
+    private final MedicalConsultationsService service;
+    private final DoctorServiceClient doctorServiceClient;
+
+    public MedicalConsultationController(MedicalConsultationsService service, DoctorServiceClient doctorServiceClient) {
+        this.service = service;
+        this.doctorServiceClient = doctorServiceClient;
+    }
+
+    @RolesAllowed("DOCTOR")
+    @GetMapping
+    public ResponseEntity<?> getMedicalConsultations(@RequestParam Long doctorId) {
+        List<MedicalConsultationResponseDTO> medicalConsultations = service.getMedicalConsultations(doctorId);
+        return ResponseEntity.ok(medicalConsultations);
+    }
+
+    @RolesAllowed("DOCTOR")
+    @GetMapping("/center-has-consultations/{centerId}")
+    public ResponseEntity<Void> checkCenter(@PathVariable Long centerId) {
+        boolean exists = service.centerHasConsultations(centerId);
+        return exists ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+    }
+
+    @RolesAllowed("DOCTOR")
+    @GetMapping("/doctor-has-consultations/{doctorId}")
+    public ResponseEntity<Void> checkDoctor(@PathVariable Long doctorId) {
+        boolean exists = service.doctorHasConsultations(doctorId);
+        return exists ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+    }
+
+    @RolesAllowed("DOCTOR")
+    @GetMapping("/{id}")
+    public ResponseEntity<MedicalConsultationResponseDTO> getMedicalConsultation(@PathVariable Long id
+    ) {
+        MedicalConsultationResponseDTO response = this.service.getMedicalConsultationById(id);
+
+        return ResponseEntity.ok(response);
+
+    }
+
+
+
+    @RolesAllowed("DOCTOR")
+    @PostMapping
+    public ResponseEntity<MedicalConsultationResponseDTO> addMedicalConsultation(@Valid @RequestBody MedicalConsultationRequestDTO request) {
+
+        MedicalConsultationResponseDTO response = service.addMedicalConsultation(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+    }
+    @RolesAllowed("DOCTOR")
+    @PutMapping("/{id}")
+    public ResponseEntity<MedicalConsultationResponseDTO> updateMedicalConsultation(@PathVariable Long id,@Valid  @RequestBody MedicalConsultationRequestDTO request) {
+
+        MedicalConsultationResponseDTO response = service.updateMedicalConsultation(id, request);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @RolesAllowed("DOCTOR")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteMedicalConsultation(@PathVariable Long id) {
+        service.deleteMedicalConsultation(id);
+        return ResponseEntity.noContent().build();
+    }
+
+
+
+}
