@@ -8,6 +8,7 @@ import consulting_service.security.annotations.RolesAllowed;
 import consulting_service.services.Patient.PatientService;
 import consulting_service.services.Patient.PatientServiceImp;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,17 +34,22 @@ public class PatientController {
     * */
     @RolesAllowed("DOCTOR")
     @GetMapping
-    public ResponseEntity<?> getPatients(@RequestParam Long centerId) {
-        List<Patient> patients = service.getPatients(centerId);
+    public ResponseEntity<?> getPatients(
+            @RequestParam Long centerId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<PatientResponseDTO> patientsPage = service.getPatients(centerId, page, size);
 
-        if (patients.isEmpty()) {
+        if (patientsPage.isEmpty()) {
             Map<String, String> response = Map.of(
                     "detail", "No hay pacientes para este centro médico"
             );
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
-        return ResponseEntity.ok(patients);
+
+        return ResponseEntity.ok(patientsPage);
     }
+
 
     @RolesAllowed("DOCTOR")
     @GetMapping("/{id}")

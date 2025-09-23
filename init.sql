@@ -111,6 +111,8 @@ CREATE TABLE patients (
                           gender VARCHAR(10),
                           center_id BIGINT NOT NULL,
                           deleted BOOLEAN NOT NULL DEFAULT FALSE,
+                          created_at   TIMESTAMP NOT NULL DEFAULT now(),
+                          updated_at   TIMESTAMP NOT NULL DEFAULT now(),
                           CONSTRAINT fk_patient_center FOREIGN KEY (center_id) REFERENCES medical_centers(id) ON DELETE CASCADE
 );
 
@@ -125,6 +127,8 @@ CREATE TABLE medical_consultations (
                                        treatment TEXT,
                                        notes TEXT,
                                        deleted BOOLEAN NOT NULL DEFAULT FALSE,
+                                       created_at   TIMESTAMP NOT NULL DEFAULT now(),
+                                       updated_at   TIMESTAMP NOT NULL DEFAULT now(),
                                        CONSTRAINT fk_consult_patient FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
                                        CONSTRAINT fk_consult_doctor FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE,
                                        CONSTRAINT fk_consult_center FOREIGN KEY (center_id) REFERENCES medical_centers(id) ON DELETE CASCADE
