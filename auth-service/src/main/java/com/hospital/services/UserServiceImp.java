@@ -6,10 +6,7 @@ import com.hospital.dtos.UpdateUserRequest;
 import com.hospital.entities.Role;
 import com.hospital.entities.User;
 import com.hospital.enums.GenderType;
-import com.hospital.exceptions.CenterIdNotFoundException;
-import com.hospital.exceptions.DniAlreadyExistsException;
-import com.hospital.exceptions.ServiceUnavailableException;
-import com.hospital.exceptions.UserNotFoundException;
+import com.hospital.exceptions.*;
 import com.hospital.feign.AdminServiceWrapper;
 import com.hospital.mappers.UserMapper;
 import com.hospital.repositories.UserRepository;
@@ -65,18 +62,18 @@ public class UserServiceImp implements UserService {
 
     @Override
     public User findUserByDni(String dni) {
-        return this.repository.findByUsername(dni).orElseThrow(() -> new UserNotFoundException("User not found with DNI: " + dni));
+        return this.repository.findByUsername(dni).orElseThrow(() -> new UserByDniNotFoundException(dni));
     }
 
     @Override
     public User findUserById(Long id) {
-        return this.repository.findUserById(id).orElseThrow(() -> new UserNotFoundException("User not found with ID: " + id));
+        return this.repository.findUserById(id).orElseThrow(() -> new UserNotFoundException(id));
     }
 
     @Override
     public User update(Long id, UpdateUserRequest request) {
         User user = repository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + id));
+                .orElseThrow(() -> new UserNotFoundException(id));
 
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
@@ -90,7 +87,7 @@ public class UserServiceImp implements UserService {
     public void updatePassword(Long id, UpdatePasswordRequest request) {
 
         User user = repository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + id));
+                .orElseThrow(() -> new UserNotFoundException(id));
 
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Old password is incorrect.");
@@ -103,9 +100,8 @@ public class UserServiceImp implements UserService {
     @Override
     public void disableUser(Long id) {
         User user = repository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException(id));
 
-        user.setEnabled(false);
-        repository.save(user);
+        repository.delete(user);
     }
 }

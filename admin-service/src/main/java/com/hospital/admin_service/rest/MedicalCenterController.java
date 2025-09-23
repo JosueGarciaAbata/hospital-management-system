@@ -84,7 +84,7 @@ public class MedicalCenterController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/validateee/{id}")
+    @GetMapping("/validate/{id}")
     public ResponseEntity<Void> validateCenterId(@PathVariable Long id) {
         if (!readService.existsById(id)) {
             return ResponseEntity.notFound().build(); // 404 Not Found
