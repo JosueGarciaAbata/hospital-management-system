@@ -1,9 +1,3 @@
-GATEWAY_NAME: hospital-gateway
-GATEWAY_PORT: 8080
-GATEWAY_URI_AUTH_SERVICE: http://localhost:8081
-GATEWAY_URI_CONSULTING_SERVICE: http://localhost:8082
-GATEWAY_URI_ADMIN_SERVICE: http://localhost:8083
-GATEWAY_URI_REPORTING_SERVICE: http://localhost:8084
 EUREKA_URI: http://localhost:8761/eureka
 
 server:
@@ -43,10 +37,10 @@ spring:
           predicates:
             - Path=/admin/**
 
-        - id: reporting-service
+        - id: report-service
           uri: ${GATEWAY_URI_REPORTING_SERVICE}
           predicates:
-            - Path=/reportes/**
+            - Path=/api/report/**
 
 eureka:
   client:
