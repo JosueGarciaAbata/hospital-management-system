@@ -12,47 +12,42 @@ import java.time.LocalDateTime;
 @Data
 @Entity
 @Table(name = "medical_consultations")
-public class MedicalConsultation {
+public class MedicalConsultation extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
     @NotNull
     @Column(name = "patient_id", nullable = false)
-    Long patientId;
+    private Long patientId;
 
     @NotNull
     @Column(name = "doctor_id", nullable = false)
-    Long doctorId;
+    private Long doctorId;
 
     @NotNull
     @Column(name = "center_id", nullable = false)
-    Long centerId;
+    private Long centerId;
 
     @NotNull
     @Column(name = "date", nullable = false)
-    LocalDateTime date;
-
+    private LocalDateTime date;
 
     @Column(name = "diagnosis")
-    String diagnosis;
-
+    private String diagnosis;
 
     @Column(name = "treatment")
-    String treatment;
-
+    private String treatment;
 
     @Column(name = "notes")
-    String notes;
+    private String notes;
 
     @Column(name = "deleted")
-    Boolean deleted;
+    private Boolean deleted;
 
     @PrePersist
     public void prePersist() {
-
-        this.deleted = false;
+        if (deleted == null) deleted = false;
     }
-
 }

@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @Table(name="patients")
 @Data
 @Entity
-public class Patient {
+public class Patient  extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

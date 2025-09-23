@@ -1,22 +1,24 @@
 package consulting_service.exceptions;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.net.URI;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Errores de validación de DTO
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiError> handleValidationExceptions(MethodArgumentNotValidException ex) {
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ProblemDetail handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String[]> errors = ex.getBindingResult().getFieldErrors()
                 .stream()
                 .collect(Collectors.groupingBy(
@@ -30,57 +32,38 @@ public class GlobalExceptionHandler {
                         e -> e.getValue().toArray(new String[0])
                 ));
 
-        ApiError apiError = new ApiError(
-                "https://example.com/validation-error",
-                "Validation Failed",
-                HttpStatus.BAD_REQUEST.value(),
-                "Algunos campos no son válidos",
-                ex.getParameter().getMethod().getName(),
-                errors
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                "Algunos campos no son válidos"
         );
+        problemDetail.setTitle("Validation Failed");
+        problemDetail.setType(URI.create("https://example.com/validation-error"));
+        problemDetail.setProperty("errors", errors);
 
-        return ResponseEntity.badRequest().body(apiError);
+        return problemDetail;
     }
 
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ApiError> handleNotFound(NotFoundException ex) {
-        ApiError apiError = new ApiError(
-                "https://example.com/not-found",
-                "Recurso no encontrado",
-                HttpStatus.NOT_FOUND.value(),
-                ex.getMessage(),
-                ex.getStackTrace()[0].getMethodName(),
-                null
+    public ProblemDetail handleNotFound(NotFoundException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage()
         );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiError);
+        problemDetail.setTitle("Recurso no encontrado");
+        problemDetail.setType(URI.create("https://example.com/not-found"));
+
+        return problemDetail;
     }
 
     @ExceptionHandler(DuplicateDniException.class)
-    public ResponseEntity<ApiError> handleDuplicateDni(DuplicateDniException ex) {
-        ApiError apiError = new ApiError(
-                "https://example.com/duplicate-dni",
-                "DNI duplicado",
-                HttpStatus.CONFLICT.value(),
-                "El DNI ya existe en el sistema",
-                ex.getStackTrace()[0].getMethodName(),
-                null
+    public ProblemDetail handleDuplicateDni(DuplicateDniException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                "El DNI ya existe en el sistema"
         );
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(apiError);
+        problemDetail.setTitle("DNI duplicado");
+        problemDetail.setType(URI.create("https://example.com/duplicate-dni"));
+
+        return problemDetail;
     }
-
-
-//    // Ejemplo de error de negocio tipo token expirado
-//    @ExceptionHandler(TokenExpiredException.class)
-//    public ResponseEntity<ApiError> handleTokenExpired(TokenExpiredException ex) {
-//        ApiError apiError = new ApiError(
-//                "https://example.com/auth-error",
-//                "Token Expired",
-//                HttpStatus.UNAUTHORIZED.value(),
-//                ex.getMessage(),
-//                "/auth/login"
-//        );
-//        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiError);
-//    }
-
-
 }
