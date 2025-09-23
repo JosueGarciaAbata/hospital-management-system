@@ -55,6 +55,7 @@ CREATE TABLE roles (
 CREATE TABLE users (
                        id BIGSERIAL PRIMARY KEY,
                        dni VARCHAR(20) NOT NULL UNIQUE,
+                       email VARCHAR(50) NOT NULL UNIQUE,
                        password VARCHAR(255) NOT NULL, -- encrypted password
                        gender VARCHAR(10),
                        first_name VARCHAR(100) NOT NULL,
@@ -145,10 +146,11 @@ INSERT INTO medical_centers (name, city, address)
 VALUES ('Central Hospital', 'Quito', 'Av. Principal 123');
 
 -- Insert default admin user (password: admin123)
-INSERT INTO users (dni, password, gender, first_name, last_name, enabled, center_id)
+INSERT INTO users (dni, email, password, gender, first_name, last_name, enabled, center_id)
 VALUES (
-           'admin001',
-           crypt('admin123', gen_salt('bf')),
+           '1500903685',
+        'josuegarcab2@hotmai.com',
+           crypt('admin123456789', gen_salt('bf')),
            'MALE',
            'System',
            'Admin',
@@ -161,9 +163,10 @@ INSERT INTO users_roles (user_id, role_id) VALUES (1, 1);
 
 
 -- Insert new doctor user
-INSERT INTO users (dni, password, gender, first_name, last_name, enabled, center_id)
+INSERT INTO users (dni, email, password, gender, first_name, last_name, enabled, center_id)
 VALUES (
            'doctor001',
+        'doctor@hotmail.com',
            crypt('doctor123', gen_salt('bf')),
            'MALE',
            'Juan',

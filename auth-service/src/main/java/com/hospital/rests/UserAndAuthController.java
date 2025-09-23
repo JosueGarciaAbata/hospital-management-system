@@ -10,23 +10,26 @@ import com.hospital.services.UserService;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RateLimiter(name = "userService")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/auth")
-public class UserController {
+public class UserAndAuthController {
 
     private final UserService service;
     private final UserMapper mapper;
 
-    @GetMapping("/users/me/{id}")
-    public ResponseEntity<UserResponse> findById(@PathVariable Long id) {
-        UserResponse response = mapper.toUserResponse(this.service.findUserById(id));
-        return ResponseEntity.ok(response);
+    @GetMapping("/users/me")
+    public ResponseEntity<UserResponse> me(@RequestHeader("X-User-Id") String userId) {
+        User user = service.findUserById(Long.parseLong(userId));
+        return ResponseEntity.ok(mapper.toUserResponse(user));
     }
 
     @GetMapping("/users/by-center/{id}")
