@@ -22,6 +22,18 @@ spring:
       circuitbreaker:
         enabled: true
 
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 eureka:
   client:
     service-url:
@@ -30,11 +42,3 @@ eureka:
     fetch-registry: true
   instance:
     prefer-ip-address: true
-
-resilience4j:
-  ratelimiter:
-    instances:
-      userService:
-            limit-for-period: 5 # Maximo 5 llamadas/peticiones
-            limit-refresh-period: 10s # Cada 10 segundos
-            timeout-duration: 0ms # Si esta lleno, falla de inmediato
