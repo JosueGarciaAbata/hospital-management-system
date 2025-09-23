@@ -30,7 +30,7 @@ public class MedicalConsultationController {
         this.doctorServiceClient = doctorServiceClient;
     }
 
-    @RolesAllowed("DOCTOR")
+    @RolesAllowed({"ADMIN", "DOCTOR"})
     @GetMapping
     public ResponseEntity<Page<MedicalConsultationResponseDTO>> getMedicalConsultations(
             @RequestParam Long doctorId,
@@ -43,7 +43,7 @@ public class MedicalConsultationController {
         return ResponseEntity.ok(medicalConsultations);
     }
 
-    @RolesAllowed({"DOCTOR","ADMIN"})
+    @RolesAllowed({"ADMIN", "DOCTOR"})
     @GetMapping("/by-center/{centerId}")
     public ResponseEntity<Page<MedicalConsultationResponseDTO>> getConsultationsByCenter(
             @PathVariable Long centerId,
@@ -56,7 +56,7 @@ public class MedicalConsultationController {
         return ResponseEntity.ok(consultations);
     }
 
-    @RolesAllowed("DOCTOR")
+    @RolesAllowed({"ADMIN", "DOCTOR"})
     @GetMapping("/all")
     public ResponseEntity<Page<MedicalConsultationResponseDTO>> getAllConsultations(
             @RequestParam(defaultValue = "0") int page,
@@ -68,7 +68,7 @@ public class MedicalConsultationController {
         return ResponseEntity.ok(consultations);
     }
 
-    @RolesAllowed("DOCTOR")
+    @RolesAllowed({"ADMIN", "DOCTOR"})
     @GetMapping("/by-specialty/{specialtyId}")
     public ResponseEntity<Page<MedicalConsultationResponseDTO>> getConsultationsBySpecialty(
             @PathVariable Long specialtyId,
@@ -82,14 +82,14 @@ public class MedicalConsultationController {
     }
 
 
-    @RolesAllowed({"DOCTOR","ADMIN"})
+    @RolesAllowed({"ADMIN", "DOCTOR"})
     @GetMapping("/center-has-consultations/{centerId}")
     public ResponseEntity<Void> checkCenter(@PathVariable Long centerId) {
         boolean exists = service.centerHasConsultations(centerId);
         return exists ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
 
-    @RolesAllowed({"DOCTOR","ADMIN"})
+    @RolesAllowed("DOCTOR")
     @GetMapping("/doctor-has-consultations/{doctorId}")
     public ResponseEntity<Void> checkDoctor(@PathVariable Long doctorId) {
         boolean exists = service.doctorHasConsultations(doctorId);

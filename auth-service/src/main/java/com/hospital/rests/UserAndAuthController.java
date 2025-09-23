@@ -1,10 +1,9 @@
 package com.hospital.rests;
 
-import com.hospital.dtos.CreateUserRequest;
-import com.hospital.dtos.UpdateUserRequest;
-import com.hospital.dtos.UserResponse;
+import com.hospital.dtos.*;
 import com.hospital.entities.User;
 import com.hospital.mappers.UserMapper;
+import com.hospital.services.PasswordResetService;
 import com.hospital.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +18,7 @@ public class UserAndAuthController {
 
     private final UserService service;
     private final UserMapper mapper;
+    private final PasswordResetService passwordResetService;
 
     @GetMapping("/users/me")
     public ResponseEntity<UserResponse> me(@RequestHeader("X-User-Id") String userId) {
@@ -66,5 +66,17 @@ public class UserAndAuthController {
             this.service.disableUser(id);
         }
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/request-reset")
+    public ResponseEntity<Void> requestReset(@RequestBody RequestPasswordRequest input) {
+        passwordResetService.requestPasswordReset(input.getInput());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestBody ResetPasswordRequest request) {
+        passwordResetService.resetPassword(request);
+        return ResponseEntity.ok().build();
     }
 }
