@@ -22,26 +22,24 @@ public class PatientController {
 
     private final PatientService service;
     private final PatientMapper mapper;
-    public PatientController(PatientServiceImp service,PatientMapper mapper) {
+
+    public PatientController(PatientServiceImp service, PatientMapper mapper) {
         this.service = service;
         this.mapper = mapper;
     }
 
     /*
-    *  aunque el gateway pone el center id en los header (@RequestHeader("X-Center-Id") Long centerId), en caso
-    * de que otro microservicio lo necesite tal vez no sea lo mas optimo
-    * asi que mejor lo mando como RequestParam
-    * */
-<<<<<<< HEAD
+     * Aunque el gateway pone el centerId en los headers (@RequestHeader("X-Center-Id") Long centerId),
+     * en caso de que otro microservicio lo necesite tal vez no sea lo más óptimo,
+     * así que mejor lo mando como RequestParam.
+     */
     @RolesAllowed({"ADMIN", "DOCTOR"})
-=======
-    @RolesAllowed({"DOCTOR","ADMIN"})
->>>>>>> develop
     @GetMapping
     public ResponseEntity<?> getPatients(
             @RequestParam Long centerId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
+
         Page<PatientResponseDTO> patientsPage = service.getPatients(centerId, page, size);
 
         if (patientsPage.isEmpty()) {
@@ -54,56 +52,41 @@ public class PatientController {
         return ResponseEntity.ok(patientsPage);
     }
 
-
-<<<<<<< HEAD
-    @RolesAllowed({"ADMIN", "DOCTOR"})
-=======
-    @RolesAllowed({"DOCTOR","ADMIN"})
+    @RolesAllowed({"DOCTOR", "ADMIN"})
     @GetMapping("/center-has-patients/{centerId}")
     public ResponseEntity<Void> checkCenter(@PathVariable Long centerId) {
         boolean exists = service.centerHasPatients(centerId);
         return exists ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
 
-    @RolesAllowed("DOCTOR")
->>>>>>> develop
+    @RolesAllowed({"DOCTOR", "ADMIN"})
     @GetMapping("/{id}")
-    public ResponseEntity<Patient> getPatient(@PathVariable Long id
-                                             ) {
+    public ResponseEntity<Patient> getPatient(@PathVariable Long id) {
         Patient patient = service.getPatient(id);
-
         return ResponseEntity.ok(patient);
-
     }
 
     @RolesAllowed("DOCTOR")
     @PostMapping
-    public ResponseEntity<PatientResponseDTO> addPatient(@Valid  @RequestBody PatientRequestDTO request) {
-
+    public ResponseEntity<PatientResponseDTO> addPatient(@Valid @RequestBody PatientRequestDTO request) {
         Patient patient = service.addPatient(request);
-
         PatientResponseDTO response = mapper.toDTO(patient);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
-
     }
+
     @RolesAllowed("DOCTOR")
     @PutMapping("/{id}")
-    public ResponseEntity<PatientResponseDTO> updatePatient(@PathVariable Long id,@Valid  @RequestBody PatientRequestDTO request) {
-
+    public ResponseEntity<PatientResponseDTO> updatePatient(@PathVariable Long id,
+                                                            @Valid @RequestBody PatientRequestDTO request) {
         Patient patient = service.updatePatient(id, request);
-
         PatientResponseDTO response = mapper.toDTO(patient);
-
         return ResponseEntity.ok(response);
-
     }
+
     @RolesAllowed("DOCTOR")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePatient(@PathVariable Long id) {
         service.deletePatient(id);
         return ResponseEntity.noContent().build();
     }
-
-
 }
