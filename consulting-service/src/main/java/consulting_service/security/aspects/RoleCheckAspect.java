@@ -28,11 +28,7 @@ public class RoleCheckAspect {
         List<String> userRoles = Arrays.asList(rolesHeader.split(","));
         boolean allowed = Arrays.stream(rolesAllowed.value())
                 .anyMatch(userRoles::contains);
-<<<<<<< HEAD
-               //si se necesita al menos uno entonces cambiar por any
-=======
-               
->>>>>>> develop
+        //si se necesita al menos uno entonces cambiar por any
         if (!allowed) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
