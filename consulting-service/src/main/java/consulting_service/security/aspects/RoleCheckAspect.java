@@ -14,21 +14,38 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.Arrays;
 import java.util.List;
 
-@Component
 @Aspect
+@Component
 public class RoleCheckAspect {
 
     @Around("@annotation(rolesAllowed)")
     public Object checkRole(ProceedingJoinPoint joinPoint, RolesAllowed rolesAllowed) throws Throwable {
-        ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = attrs.getRequest();
+        var attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attrs == null) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No request context");
+        }
 
+        var request = attrs.getRequest();
         String rolesHeader = request.getHeader("X-Roles");
+        if (rolesHeader == null || rolesHeader.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Falta cabecera X-Roles");
+        }
 
-        List<String> userRoles = Arrays.asList(rolesHeader.split(","));
-        boolean allowed = Arrays.stream(rolesAllowed.value())
-                .allMatch(userRoles::contains);
-               //si se necesita al menos uno entonces cambiar por any
+        // normalizar
+        var userRoles = Arrays.stream(rolesHeader.split(","))
+                .map(String::trim)
+                .map(String::toUpperCase)
+                .filter(s -> !s.isBlank())
+                .toList();
+
+        var required = Arrays.stream(rolesAllowed.value())
+                .map(String::trim)
+                .map(String::toUpperCase)
+                .toArray(String[]::new);
+
+        // ✅ OR (al menos uno)
+        boolean allowed = Arrays.stream(required).anyMatch(userRoles::contains);
+
         if (!allowed) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
@@ -38,5 +55,4 @@ public class RoleCheckAspect {
 
         return joinPoint.proceed();
     }
-
 }

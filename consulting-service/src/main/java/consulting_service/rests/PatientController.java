@@ -32,7 +32,7 @@ public class PatientController {
     * de que otro microservicio lo necesite tal vez no sea lo mas optimo
     * asi que mejor lo mando como RequestParam
     * */
-    @RolesAllowed("DOCTOR")
+    @RolesAllowed({"DOCTOR","ADMIN"})
     @GetMapping
     public ResponseEntity<?> getPatients(
             @RequestParam Long centerId,
@@ -50,6 +50,13 @@ public class PatientController {
         return ResponseEntity.ok(patientsPage);
     }
 
+
+    @RolesAllowed({"DOCTOR","ADMIN"})
+    @GetMapping("/center-has-patients/{centerId}")
+    public ResponseEntity<Void> checkCenter(@PathVariable Long centerId) {
+        boolean exists = service.centerHasPatients(centerId);
+        return exists ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+    }
 
     @RolesAllowed("DOCTOR")
     @GetMapping("/{id}")
