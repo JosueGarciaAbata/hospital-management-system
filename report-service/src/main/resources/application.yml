@@ -1,9 +1,9 @@
 server:
-  port: ${CONSULTING_PORT:8090}
+  port: ${REPORTING_PORT:8093}
 
 spring:
   application:
-    name:  ${CONSULTING_NAME}
+    name:  ${REPORTING_NAME}
 
   datasource:
     url: jdbc:postgresql://${DB_HOSTNAME}:${DB_PORT}/${DB_NAME}
@@ -14,7 +14,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: true
 
 eureka:
