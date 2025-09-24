@@ -52,6 +52,7 @@ public class PatientController {
         return ResponseEntity.ok(patientsPage);
     }
 
+
     @RolesAllowed({"DOCTOR", "ADMIN"})
     @GetMapping("/center-has-patients/{centerId}")
     public ResponseEntity<Void> checkCenter(@PathVariable Long centerId) {

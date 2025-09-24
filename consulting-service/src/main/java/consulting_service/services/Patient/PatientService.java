@@ -17,4 +17,5 @@ public interface PatientService {
     void  deletePatient(Long id);
     PatientResponseDTO getPatientTC(Long id);
     boolean centerHasPatients(Long centerId);
+
 }
