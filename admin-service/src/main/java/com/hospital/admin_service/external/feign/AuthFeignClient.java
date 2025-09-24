@@ -22,7 +22,7 @@ public interface AuthFeignClient {
     @Retry(name = "authService")
     ResponseEntity<UserResponse> register(@RequestBody CreateUserForDoctorRequest body);
 
-    @GetMapping("/users/me/{id}")
+    @GetMapping("/users/{id}")
     @CircuitBreaker(name = "authService")
     @Retry(name = "authService")
     ResponseEntity<UserResponse> getUserById(@PathVariable("id") Long id);

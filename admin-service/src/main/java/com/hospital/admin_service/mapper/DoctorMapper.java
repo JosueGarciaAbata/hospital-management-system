@@ -16,6 +16,11 @@ public interface DoctorMapper {
             @Mapping(target = "userId",        source = "userId"),
             @Mapping(target = "specialtyId",   source = "specialty.id"),
             @Mapping(target = "specialtyName", source = "specialty.name"),
+            // Estos 4 se enriquecen fuera del mapper (servicio/assembler)
+            @Mapping(target = "username",  ignore = true),
+            @Mapping(target = "firstName", ignore = true),
+            @Mapping(target = "lastName",  ignore = true),
+            @Mapping(target = "gender",    ignore = true),
             @Mapping(target = "createdAt",     source = "createdAt"),
             @Mapping(target = "updatedAt",     source = "updatedAt")
     })
