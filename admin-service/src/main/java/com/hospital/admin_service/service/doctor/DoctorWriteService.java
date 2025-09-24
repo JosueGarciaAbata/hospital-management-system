@@ -37,6 +37,7 @@ public class DoctorWriteService {
         try {
             var body = new CreateUserForDoctorRequest(
                     req.username(),
+                    req.email(),
                     req.password(),
                     req.gender(),
                     req.firstName(),

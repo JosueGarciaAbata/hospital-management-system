@@ -12,7 +12,6 @@ public class UserResponseSV {
 
     private Long id;
     private String username;
-    private String email;
     private GenderType gender;
 
     @JsonProperty("first_name")
@@ -23,8 +22,6 @@ public class UserResponseSV {
 
     @JsonProperty("center_id")
     private Long centerId;
-
-
 
 
 }
