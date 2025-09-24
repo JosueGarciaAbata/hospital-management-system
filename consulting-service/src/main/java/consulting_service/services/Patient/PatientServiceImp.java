@@ -12,9 +12,12 @@ import org.springframework.data.domain.PageRequest;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class PatientServiceImp  implements  PatientService{
 
@@ -36,10 +39,13 @@ public class PatientServiceImp  implements  PatientService{
 
     @Override
     public Page<PatientResponseDTO> getPatients(Long centerId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
+
         return repository.findByCenterIdAndDeletedFalse(centerId, pageable)
                 .map(mapper::toDTO);
     }
+
+
 
     @Override
     public Patient addPatient(PatientRequestDTO request) {
