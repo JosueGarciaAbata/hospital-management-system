@@ -26,6 +26,12 @@ public class UserAndAuthController {
         return ResponseEntity.ok(mapper.toUserResponse(user));
     }
 
+    @GetMapping("/users/{id}")
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
+        User user = service.findUserById(id);
+        return ResponseEntity.ok(mapper.toUserResponse(user));
+    }
+
     @GetMapping("/users/by-center/{id}")
     public ResponseEntity<UserResponse> getUserByCenterId(
             @PathVariable Long id,

@@ -12,6 +12,12 @@ public record DoctorRead(
         Long userId,
         Long specialtyId,
         String specialtyName,
+
+        String username,
+        String firstName,
+        String lastName,
+        String gender,
+
         Instant createdAt,
         Instant updatedAt
 ) {}
