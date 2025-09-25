@@ -25,4 +25,7 @@ public class Doctor extends Auditable {
     @ManyToOne
     @JoinColumn(name = "specialty_id", foreignKey = @ForeignKey(name = "fk_doctor_specialty"))
     private Specialty specialty;
+
+    @Column(insertable = false, updatable = false, nullable = false)
+    private boolean deleted;
 }

@@ -24,4 +24,7 @@ public class Specialty extends Auditable {
 
     @Column(columnDefinition = "text")
     private String description;
+
+    @Column(insertable = false, updatable = false, nullable = false)
+    private boolean deleted;
 }

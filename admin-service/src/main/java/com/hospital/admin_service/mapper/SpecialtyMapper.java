@@ -21,6 +21,7 @@ public interface SpecialtyMapper {
     @Mapping(target = "version",   ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
     Specialty toEntity(SpecialtyCreateRequest dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
@@ -28,5 +29,6 @@ public interface SpecialtyMapper {
     @Mapping(target = "version",   ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
     void updateEntityFromDto(SpecialtyUpdateRequest dto, @MappingTarget Specialty entity);
 }
