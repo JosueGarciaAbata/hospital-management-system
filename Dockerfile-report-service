@@ -1,0 +1,28 @@
+# === Etapa 1: Build de la app ===
+FROM maven:3.9.9-eclipse-temurin-17 AS builder
+WORKDIR /app
+
+# Copiamos el POM padre
+COPY ./pom.xml ./pom.xml
+
+# Copiamos el POM del microservicio
+COPY ./report-service/pom.xml ./report-service/pom.xml
+
+# Descargamos dependencias
+RUN mvn -B dependency:go-offline -f report-service/pom.xml
+
+# Copiamos el código fuente del microservicio
+COPY ./report-service/src ./report-service/src
+
+# Compilamos el JAR
+RUN mvn clean package -DskipTests -f report-service/pom.xml
+
+# === Etapa 2: Imagen de ejecución ===
+FROM eclipse-temurin:17-jdk-alpine
+WORKDIR /app
+
+# Copiamos el JAR generado de la etapa builder
+COPY --from=builder /app/report-service/target/*.jar report-service-0.0.1-SNAPSHOT.jar
+
+EXPOSE 8093
+ENTRYPOINT ["java","-jar","report-service-0.0.1-SNAPSHOT.jar"]
