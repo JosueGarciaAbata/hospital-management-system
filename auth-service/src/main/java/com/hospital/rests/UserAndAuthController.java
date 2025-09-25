@@ -4,6 +4,7 @@ import com.hospital.dtos.*;
 import com.hospital.entities.User;
 import com.hospital.exceptions.SelfDeletionNotAllowedException;
 import com.hospital.mappers.UserMapper;
+import com.hospital.security.aop.RequireRole;
 import com.hospital.services.PasswordResetService;
 import com.hospital.services.UserService;
 import jakarta.validation.Valid;
@@ -30,11 +31,13 @@ public class UserAndAuthController {
     private final UserMapper mapper;
     private final PasswordResetService passwordResetService;
 
+    @RequireRole("ADMIN")
     @GetMapping("/users/all-testing")
     public ResponseEntity<List<UserResponse>> findAllTesting(){
         return ResponseEntity.ok(service.findAllTesting().stream().map(mapper::toUserResponse).collect(Collectors.toList()));
     }
 
+    @RequireRole("ADMIN")
     @GetMapping("/users")
     public ResponseEntity<Page<UserResponse>> findAllUsers(
             @RequestHeader("X-User-Id") String userId,
@@ -78,18 +81,21 @@ public class UserAndAuthController {
                 : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
+    @RequireRole("ADMIN")
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@RequestBody @Valid CreateUserRequest request) {
         UserResponse response = mapper.toUserResponse(this.service.register(request));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @RequireRole("ADMIN")
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request) {
         UserResponse updatedUser = mapper.toUserResponse(this.service.update(id, request));
         return ResponseEntity.status(HttpStatus.OK).body(updatedUser);
     }
 
+    @RequireRole("ADMIN")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id,
                                            @RequestParam(name = "hard", defaultValue = "false") boolean hard) {
