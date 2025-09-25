@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -25,4 +26,6 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
     boolean existsByCenterIdAndDeletedFalse(Long centerId);
 
     Optional<Patient> findByDniAndIdNot(String dni, Long id);
+
+    List<Patient> findAllByCenterIdAndDeletedFalse(Long centerId);
 }

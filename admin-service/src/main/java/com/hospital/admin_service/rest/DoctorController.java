@@ -72,7 +72,7 @@ public class DoctorController {
         return readService.findEntityById(id, includeDeleted);
     }
 
-    @RequireRole("ADMIN")
+    @RequireRole({"ADMIN","DOCTOR"})
     @GetMapping("/by-user/{userId}")
     @Operation(summary = "Obtener un doctor por ID de usuario",
             description = "Devuelve un doctor usando el identificador del usuario asociado.")
