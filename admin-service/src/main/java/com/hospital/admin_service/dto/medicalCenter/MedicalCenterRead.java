@@ -29,5 +29,7 @@ public record MedicalCenterRead(
         Instant createdAt,
 
         @Schema(description = "Fecha y hora de la última actualización del registro (UTC).", example = "2025-03-05T09:15:00Z")
-        Instant updatedAt
+        Instant updatedAt,
+
+        Boolean deleted
 ) {}

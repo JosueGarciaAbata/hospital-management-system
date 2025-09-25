@@ -27,4 +27,7 @@ public class MedicalCenter extends Auditable {
 
     @Column(length = 200, nullable = false)
     private String address;
+
+    @Column(insertable = false, updatable = false, nullable = false)
+    private boolean deleted;
 }

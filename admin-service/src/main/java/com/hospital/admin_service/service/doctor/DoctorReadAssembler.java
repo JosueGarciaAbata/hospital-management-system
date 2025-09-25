@@ -33,7 +33,8 @@ public class DoctorReadAssembler {
                 user.lastName(),
                 user.gender(),
                 base.createdAt(),
-                base.updatedAt()
+                base.updatedAt(),
+                base.deleted()
         );
     }
 
