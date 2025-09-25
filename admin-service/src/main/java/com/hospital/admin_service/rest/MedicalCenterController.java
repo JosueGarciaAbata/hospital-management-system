@@ -52,7 +52,7 @@ public class MedicalCenterController {
         return ResponseEntity.ok()
                 .eTag("\"" + dto.version() + "\"")
                 .body(dto);
-    }
+    }   
 
     @RequireRole("ADMIN")
     @PostMapping("/batch")

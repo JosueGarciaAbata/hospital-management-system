@@ -16,6 +16,7 @@ import consulting_service.services.Patient.PatientService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -48,14 +49,10 @@ public class MedicalConsultationsServiceImp implements MedicalConsultationsServi
 
     @Override
     public Page<MedicalConsultationResponseDTO> getMedicalConsultations(Long doctorId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<MedicalConsultation> medicalConsultations = repository.findByDoctorIdAndDeletedFalse(doctorId, pageable);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
 
-        if (medicalConsultations.isEmpty()) {
-            throw new NotFoundException("No se han encontrado consultas médicas para el doctor");
-        }
-
-        return medicalConsultations.map(this::buildMedicalConsultationResponse);
+        return repository.findByDoctorIdAndDeletedFalse(doctorId, pageable)
+                .map(this::buildMedicalConsultationResponse);
     }
 
     @Override

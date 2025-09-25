@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -49,6 +50,21 @@ public class PatientController {
         }
 
         return ResponseEntity.ok(patientsPage);
+    }
+
+    @RolesAllowed({"ADMIN", "DOCTOR"})
+    @GetMapping("/all")
+    public ResponseEntity<List<PatientResponseDTO>> getAllPatients(@RequestParam Long centerId) {
+        List<PatientResponseDTO> patients = service.getAllPatients(centerId);
+
+        if (patients.isEmpty()) {
+            Map<String, String> response = Map.of(
+                    "detail", "No hay pacientes para este centro médico"
+            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        return ResponseEntity.ok(patients);
     }
 
     @RolesAllowed({"DOCTOR", "ADMIN"})

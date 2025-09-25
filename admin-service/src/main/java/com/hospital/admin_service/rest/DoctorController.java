@@ -55,7 +55,7 @@ public class DoctorController {
         return readService.findEntityById(id, includeDeleted);
     }
 
-    @RequireRole("ADMIN")
+    @RequireRole({"ADMIN","DOCTOR"})
     @GetMapping("/by-user/{userId}")
     public DoctorRead getByUserId(@PathVariable Long userId) {
         return readService.findByUserId(userId);
