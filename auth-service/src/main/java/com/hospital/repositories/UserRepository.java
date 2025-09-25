@@ -1,16 +1,48 @@
 package com.hospital.repositories;
 
 import com.hospital.entities.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
-    boolean existsByUsername(String username);
-    boolean existsByEmail(String email);
+
+    @Query(
+            value = "SELECT * FROM users",
+            countQuery = "SELECT COUNT(*) FROM users",
+            nativeQuery = true
+    )
+    Page<User> findAllIncludingDeleted(Pageable pageable);
+
+    @Query(
+            value = "SELECT * FROM users u WHERE u.id <> :excludedUserId AND u.enabled = true",
+            countQuery = "SELECT COUNT(*) FROM users u WHERE u.id <> :excludedUserId",
+            nativeQuery = true
+    )
+    Page<User> findAllExcludingUser(@Param("excludedUserId") Long excludedUserId, Pageable pageable);
+
+    @Query(
+            value = "SELECT * FROM users u WHERE u.id <> :excludedUserId",
+            countQuery = "SELECT COUNT(*) FROM users u WHERE u.id <> :excludedUserId",
+            nativeQuery = true
+    )
+    Page<User> findAllIncludingDeletedExcludingUser(@Param("excludedUserId") Long excludedUserId, Pageable pageable);
+
+
+    @Query(value = "SELECT * FROM users", nativeQuery = true)
+    List<User> findAllTesting();
+
+    @Query(value = "SELECT exists (SELECT 1 FROM users u WHERE u.dni = :dni)", nativeQuery = true)
+    boolean existsByUsername(@Param("dni") String username);
+
+    @Query(value = "SELECT exists (SELECT 1 FROM users u WHERE u.email = :email)", nativeQuery = true)
+    boolean existsByEmail(@Param("email") String email);
 
     Optional<User> findUserById(Long id);
 

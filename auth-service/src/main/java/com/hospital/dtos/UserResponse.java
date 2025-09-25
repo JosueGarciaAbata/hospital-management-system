@@ -23,6 +23,8 @@ public class UserResponse {
     @Schema(description = "Género del usuario", example = "MALE")
     private GenderType gender;
 
+    private boolean enabled;
+
     @Schema(description = "Nombre del usuario", example = "Luis")
     @JsonProperty("first_name")
     private String firstName;

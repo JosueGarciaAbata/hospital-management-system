@@ -2,11 +2,14 @@ package com.hospital.rests;
 
 import com.hospital.dtos.*;
 import com.hospital.entities.User;
+import com.hospital.exceptions.SelfDeletionNotAllowedException;
 import com.hospital.mappers.UserMapper;
+import com.hospital.security.aop.RequireRole;
 import com.hospital.services.PasswordResetService;
 import com.hospital.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +24,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/auth")
@@ -35,21 +42,30 @@ public class UserAndAuthController {
      *          USERS
      * ========================= */
 
+    @RequireRole("ADMIN")
+    @GetMapping("/users/all-testing")
+    public ResponseEntity<List<UserResponse>> findAllTesting(){
+        return ResponseEntity.ok(service.findAllTesting().stream().map(mapper::toUserResponse).collect(Collectors.toList()));
+    }
+
+    @RequireRole("ADMIN")
     @GetMapping("/users")
     @Operation(
             summary = "Listar usuarios paginados",
             description = "Devuelve una página de usuarios. Permite ordenar por el campo especificado."
     )
     public ResponseEntity<Page<UserResponse>> findAllUsers(
+            @RequestHeader("X-User-Id") String userId,
             @Parameter(description = "Número de página (0-indexado)", example = "0")
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Tamaño de página", example = "10")
             @RequestParam(defaultValue = "10") int size,
             @Parameter(description = "Campo por el cual ordenar", example = "id")
-            @RequestParam(defaultValue = "id") String sortBy) {
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "false") boolean includeDeleted) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
-        return ResponseEntity.ok(service.findAll(pageable));
+        return ResponseEntity.ok(service.findAllExludingUser(Long.parseLong(userId), pageable, includeDeleted));
     }
 
     @GetMapping("/users/me")
@@ -104,6 +120,7 @@ public class UserAndAuthController {
                 : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
+    @RequireRole("ADMIN")
     @PostMapping("/register")
     @Operation(summary = "Registrar un nuevo usuario")
     @ApiResponses({
@@ -116,6 +133,7 @@ public class UserAndAuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @RequireRole("ADMIN")
     @PutMapping("/{id}")
     @Operation(summary = "Actualizar un usuario existente")
     public ResponseEntity<UserResponse> updateUser(
@@ -126,6 +144,7 @@ public class UserAndAuthController {
         return ResponseEntity.status(HttpStatus.OK).body(updatedUser);
     }
 
+    @RequireRole("ADMIN")
     @DeleteMapping("/{id}")
     @Operation(summary = "Eliminar o deshabilitar un usuario",
             description = "Si `hard=true`, elimina físicamente el usuario; si no, lo deshabilita (borrado lógico).")
@@ -137,11 +156,15 @@ public class UserAndAuthController {
             @PathVariable Long id,
             @Parameter(description = "Eliminación física si es true; deshabilitar si es false", example = "false")
             @RequestParam(name = "hard", defaultValue = "false") boolean hard) {
+        // Chequeando si el usuario es un doctor. Si es asi, no se puede eliminar
+        this.service.validateDoctorAssigned(id);
+
         if (hard) {
             this.service.hardDeleteUser(id);
         } else {
             this.service.disableUser(id);
         }
+
         return ResponseEntity.noContent().build();
     }
 

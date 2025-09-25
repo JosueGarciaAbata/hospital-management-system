@@ -12,6 +12,7 @@ import com.hospital.feign.AdminServiceWrapper;
 import com.hospital.mappers.UserMapper;
 import com.hospital.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImp implements UserService {
@@ -36,9 +38,15 @@ public class UserServiceImp implements UserService {
     private final UserMapper mapper;
 
     @Override
-    public Page<UserResponse> findAll(Pageable pageable) {
+    public Page<UserResponse> findAll(Pageable pageable, boolean includeDeleted) {
         // Traer usuarios con paginación
-        Page<User> users = repository.findAll(pageable);
+        Page<User> users;
+
+        if (includeDeleted) {
+            users = repository.findAllIncludingDeleted(pageable);
+        } else {
+            users = repository.findAll(pageable);
+        }
 
         // Extraer los centerId únicos
         List<Long> centerIds = users.stream()
@@ -48,7 +56,7 @@ public class UserServiceImp implements UserService {
                 .toList();
 
         // Llamar al admin-service en batch
-        List<MedicalCenterDto> centers = wrapper.getCentersById(centerIds, false);
+        List<MedicalCenterDto> centers = wrapper.getCentersById(centerIds, includeDeleted);
 
         // Convertir a Map<Long, String> para acceso rápido
         Map<Long, String> centersMap = centers.stream()
@@ -61,6 +69,45 @@ public class UserServiceImp implements UserService {
             dto.setCenterName(centerName);
             return dto;
         });
+    }
+
+    @Override
+    public Page<UserResponse> findAllExludingUser(Long userId, Pageable pageable, boolean includeDeleted) {
+        // Traer usuarios con paginación
+        Page<User> users;
+
+        if (includeDeleted) {
+            users = repository.findAllIncludingDeletedExcludingUser(userId, pageable);
+        } else {
+            users = repository.findAllExcludingUser(userId, pageable);
+        }
+
+        // Extraer los centerId únicos
+        List<Long> centerIds = users.stream()
+                .map(User::getCenterId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        // Llamar al admin-service en batch
+        List<MedicalCenterDto> centers = wrapper.getCentersById(centerIds, includeDeleted);
+
+        // Convertir a Map<Long, String> para acceso rápido
+        Map<Long, String> centersMap = centers.stream()
+                .collect(Collectors.toMap(MedicalCenterDto::getId, MedicalCenterDto::getName));
+
+        // Mapear usuarios a UserResponse con el nombre del centro
+        return users.map(user -> {
+            UserResponse dto = mapper.toUserResponse(user);
+            String centerName = centersMap.getOrDefault(user.getCenterId(), "Centro desconocido");
+            dto.setCenterName(centerName);
+            return dto;
+        });
+    }
+
+    @Override
+    public List<User> findAllTesting() {
+        return this.repository.findAllTesting();
     }
 
     @Override
@@ -166,5 +213,26 @@ public class UserServiceImp implements UserService {
     @Override
     public User findByUsername(String username) {
         return this.findByUsername(username);
+    }
+
+    @Override
+    public void validateDoctorAssigned(Long userId) {
+
+        ResponseEntity<Void> response = this.wrapper.existsByUserId(userId);
+        log.info("Estado response {}", response.getStatusCode());
+
+        if (response.getStatusCode().is4xxClientError()) {
+            // Caso esperado: no existe doctor asociado, continuar sin error
+            return;
+        }
+
+        if (response.getStatusCode().is5xxServerError()) {
+            throw new ServiceUnavailableException("El servicio de administración no está disponible en este momento. Intente nuevamente más tarde.");
+        }
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+            throw new DoctorAssignedException("El usuario tiene un doctor asignado y no se puede eliminar.");
+        }
+
     }
 }

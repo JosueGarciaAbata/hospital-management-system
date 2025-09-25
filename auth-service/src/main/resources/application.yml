@@ -1,17 +1,13 @@
 server:
-  port: ${ADMIN_SERVICE_PORT:8091}
+  port: ${AUTH_PORT:8090}
   forward-headers-strategy: framework
-  error:
-    include-message: always
-
 
 spring:
-
   application:
-    name: ${ADMIN_SERVICE_NAME:admin-service}
+    name:  ${AUTH_NAME}
 
   datasource:
-    url: jdbc:postgresql://${DB_HOSTNAME}:${DB_PORT}/${DB_NAME}
+    url: jdbc:postgresql://${DB_HOSTNAME}:${DB_PORT}/hospital_system
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -19,46 +15,25 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     show-sql: true
-    properties:
-      hibernate.format_sql: true
 
   cloud:
     openfeign:
-      httpclient:
-        enabled: true
       circuitbreaker:
-        enabled: false
+        enabled: true
 
-feign:
-  client:
-    config:
-      auth-service:
-        connectTimeout: 2000
-        readTimeout: 3000
-        loggerLevel: BASIC
-
-resilience4j:
-  circuitbreaker:
-    instances:
-      authService:
-        sliding-window-type: COUNT_BASED
-        sliding-window-size: 10
-        failure-rate-threshold: 50
-        slow-call-duration-threshold: 2s
-        wait-duration-in-open-state: 10s
-  retry:
-    instances:
-      authService:
-        max-attempts: 2
-        wait-duration: 200ms
-  ratelimiter:
-    instances:
-      authService:
-        limit-for-period: 10
-        limit-refresh-period: 10s
-        timeout-duration: 0ms
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 eureka:
   client:
@@ -68,28 +43,7 @@ eureka:
     fetch-registry: true
   instance:
     prefer-ip-address: true
-    # evita colisiones cuando haya varias instancias
     instance-id: ${spring.application.name}:${spring.cloud.client.ip-address}:${server.port}
-
-management:
-  endpoints:
-    web:
-      base-path: /admin/actuator
-      exposure:
-        include: health,info
-  endpoint:
-    health:
-      probes:
-        enabled: true
-
-logging:
-  level:
-    # Logger interno de Feign (si usas Logger.Level.FULL)
-    feign: DEBUG
-    # Tus clientes (ajusta el paquete de tus @FeignClient)
-    com.hospital.admin_service.external: DEBUG
-    # El config (para ver nuestro log)
-    com.hospital.admin_service.config.FeignConfig: INFO
 
 springdoc:
   api-docs.path: /v3/api-docs
