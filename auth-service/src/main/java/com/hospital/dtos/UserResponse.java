@@ -5,6 +5,7 @@ import com.hospital.enums.GenderType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
+import java.util.List;
 
 @Getter
 @Setter
@@ -40,4 +41,7 @@ public class UserResponse {
     @Schema(description = "Nombre del centro médico asociado", example = "Hospital Central")
     @JsonProperty("center_name")
     private String centerName;
+
+    @Schema(description = "Roles asignados al usuario")
+    private List<String> roles;
 }

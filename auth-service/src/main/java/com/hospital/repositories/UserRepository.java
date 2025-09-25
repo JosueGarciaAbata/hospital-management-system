@@ -3,6 +3,7 @@ package com.hospital.repositories;
 import com.hospital.entities.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -44,6 +45,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query(value = "SELECT exists (SELECT 1 FROM users u WHERE u.email = :email)", nativeQuery = true)
     boolean existsByEmail(@Param("email") String email);
 
+    @EntityGraph(attributePaths = {"roles"})
     Optional<User> findUserById(Long id);
 
     // Usuarios activos (implícito gracias a @SoftDelete)
