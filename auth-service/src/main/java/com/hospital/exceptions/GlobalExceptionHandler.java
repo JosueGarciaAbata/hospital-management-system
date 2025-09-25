@@ -10,6 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +42,17 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(ForbiddenException.class)
+    public ProblemDetail handleForbidden(ForbiddenException ex) {
+        return buildProblem(HttpStatus.FORBIDDEN, "Acceso prohibido",
+                ex.getMessage(), Map.of("global", ex.getMessage()));
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ProblemDetail handleUnauthorized(UnauthorizedException ex) {
+        return buildProblem(HttpStatus.UNAUTHORIZED, "No autorizado",
+                ex.getMessage(), Map.of("global", ex.getMessage()));
+    }
 
     // Errores de validación (Hibernate Validator)
     @ExceptionHandler(MethodArgumentNotValidException.class)
