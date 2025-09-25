@@ -26,6 +26,14 @@ public class CustomUserDetails implements UserDetails {
         return user.getCenterId();
     }
 
+    public String getFullname() {
+        return this.user.getFirstName() + this.user.getLastName();
+    }
+
+    public String getEmail() {
+        return this.user.getEmail();
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Set<Role> roles = user.getRoles();

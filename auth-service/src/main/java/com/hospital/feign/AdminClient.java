@@ -8,7 +8,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 // Fallback --> una accion alternativa en caso de que el servicio falle.
-@FeignClient(name = "admin-service", fallback = AdminClientFallback.class)
+@FeignClient(
+        name = "admin-service",
+        fallback = AdminClientFallback.class,
+        dismiss404 = true
+)
 public interface AdminClient {
 
     @GetMapping("/admin/centers/validate/{id}")
@@ -17,5 +21,8 @@ public interface AdminClient {
     @PostMapping("/admin/centers/batch")
     List<MedicalCenterDto> getCentersByIds(@RequestBody List<Long> ids,
                                            @RequestParam(value = "includeDeleted", defaultValue = "false") boolean includeDeleted);
+
+    @GetMapping("/admin/doctors/exists-by-user/{userId}")
+    ResponseEntity<Void> existsByUserId(@PathVariable Long userId);
 
 }

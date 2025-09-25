@@ -1,27 +1,37 @@
-EUREKA_URI: http://localhost:8761/eureka
-
-server:
-  port: ${GATEWAY_PORT}
-
 spring:
-  application:
-    name: ${GATEWAY_NAME} # Nombre unico del microservicio en Eureka. Esto se usa en las uri para que el gateway los descruba.
-
   cloud:
     gateway:
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOrigins: ${FRONTEND_URL}
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS
-            allowedHeaders: "*"
-            allowCredentials: true
       routes:
+        # ====== DOCS primero (reescritura SOLO para /v3/api-docs) ======
+        - id: auth-service-docs
+          uri: ${GATEWAY_URI_AUTH_SERVICE}
+          predicates:
+            - Path=/auth/v3/api-docs
+          filters:
+            - RewritePath=/auth/(?<seg>v3/api-docs.*), /${seg}
+
+        - id: consulting-service-docs
+          uri: ${GATEWAY_URI_CONSULTING_SERVICE}
+          predicates:
+            - Path=/api/consulting/v3/api-docs
+          filters:
+            - RewritePath=/api/consulting/(?<seg>v3/api-docs.*), /${seg}
+
+        - id: admin-service-docs
+          uri: ${GATEWAY_URI_ADMIN_SERVICE}
+          predicates:
+            - Path=/admin/v3/api-docs
+          filters:
+            - RewritePath=/admin/(?<seg>v3/api-docs.*), /${seg}
+
+        - id: report-service-docs
+          uri: ${GATEWAY_URI_REPORTING_SERVICE}
+          predicates:
+            - Path=/api/report/v3/api-docs
+          filters:
+            - RewritePath=/api/report/(?<seg>v3/api-docs.*), /${seg}
+
+        # ====== TRÁFICO NORMAL (sin StripPrefix) ======
         - id: auth-service
           uri: ${GATEWAY_URI_AUTH_SERVICE}
           predicates:
@@ -50,3 +60,18 @@ eureka:
     fetch-registry: true
   instance:
     prefer-ip-address: true
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: auth-service
+        url: /auth/v3/api-docs
+      - name: consulting-service
+        url: /api/consulting/v3/api-docs
+      - name: admin-service
+        url: /admin/v3/api-docs
+      - name: reporting-service
+        url: /api/report/v3/api-docs   # <-- corregido (antes decía /reportes)

@@ -1,5 +1,6 @@
 server:
   port: ${ADMIN_SERVICE_PORT:8091}
+  forward-headers-strategy: framework
   error:
     include-message: always
 
@@ -89,3 +90,8 @@ logging:
     com.hospital.admin_service.external: DEBUG
     # El config (para ver nuestro log)
     com.hospital.admin_service.config.FeignConfig: INFO
+
+springdoc:
+  api-docs.path: /v3/api-docs
+  swagger-ui.path: /swagger-ui.html
+
