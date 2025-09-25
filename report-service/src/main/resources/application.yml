@@ -1,5 +1,6 @@
 server:
   port: ${REPORTING_PORT}
+  forward-headers-strategy: framework
 
 spring:
   application:
@@ -25,3 +26,7 @@ eureka:
     fetch-registry: true
   instance:
     prefer-ip-address: true
+
+springdoc:
+  api-docs.path: /v3/api-docs
+  swagger-ui.path: /swagger-ui.html
