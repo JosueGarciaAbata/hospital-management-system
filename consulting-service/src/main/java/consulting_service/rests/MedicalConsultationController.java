@@ -43,6 +43,8 @@ public class MedicalConsultationController {
         return ResponseEntity.ok(medicalConsultations);
     }
 
+
+
     @RolesAllowed({"ADMIN", "DOCTOR"})
     @GetMapping("/by-center/{centerId}")
     public ResponseEntity<Page<MedicalConsultationResponseDTO>> getConsultationsByCenter(

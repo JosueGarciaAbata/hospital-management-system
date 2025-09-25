@@ -36,7 +36,7 @@ public class MedicalCenterController {
         return readService.findAllPage(includeDeleted, pageable).map(mapper::toRead);
     }
 
-    @RequireRole("ADMIN")
+    @RequireRole({"ADMIN","DOCTOR"})
     @GetMapping("/all")
     public List<MedicalCenterRead> listAll(@RequestParam(defaultValue = "false") boolean includeDeleted) {
         return readService.findAllEntities(includeDeleted).stream()
@@ -44,7 +44,7 @@ public class MedicalCenterController {
                 .toList();
     }
 
-    @RequireRole("ADMIN")
+    @RequireRole({"ADMIN","DOCTOR"})
     @GetMapping("/{id}")
     public ResponseEntity<MedicalCenterRead> getOne(@PathVariable Long id,
                                                     @RequestParam(defaultValue = "false") boolean includeDeleted) {
