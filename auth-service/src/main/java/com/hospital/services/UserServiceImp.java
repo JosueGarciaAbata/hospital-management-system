@@ -72,6 +72,40 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
+    public Page<UserResponse> findAllExludingUser(Long userId, Pageable pageable, boolean includeDeleted) {
+        // Traer usuarios con paginación
+        Page<User> users;
+
+        if (includeDeleted) {
+            users = repository.findAllIncludingDeletedExcludingUser(userId, pageable);
+        } else {
+            users = repository.findAllExcludingUser(userId, pageable);
+        }
+
+        // Extraer los centerId únicos
+        List<Long> centerIds = users.stream()
+                .map(User::getCenterId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        // Llamar al admin-service en batch
+        List<MedicalCenterDto> centers = wrapper.getCentersById(centerIds, includeDeleted);
+
+        // Convertir a Map<Long, String> para acceso rápido
+        Map<Long, String> centersMap = centers.stream()
+                .collect(Collectors.toMap(MedicalCenterDto::getId, MedicalCenterDto::getName));
+
+        // Mapear usuarios a UserResponse con el nombre del centro
+        return users.map(user -> {
+            UserResponse dto = mapper.toUserResponse(user);
+            String centerName = centersMap.getOrDefault(user.getCenterId(), "Centro desconocido");
+            dto.setCenterName(centerName);
+            return dto;
+        });
+    }
+
+    @Override
     public List<User> findAllTesting() {
         return this.repository.findAllTesting();
     }
@@ -185,6 +219,12 @@ public class UserServiceImp implements UserService {
     public void validateDoctorAssigned(Long userId) {
 
         ResponseEntity<Void> response = this.wrapper.existsByUserId(userId);
+        log.info("Estado response {}", response.getStatusCode());
+
+        if (response.getStatusCode().is4xxClientError()) {
+            // Caso esperado: no existe doctor asociado, continuar sin error
+            return;
+        }
 
         if (response.getStatusCode().is5xxServerError()) {
             throw new ServiceUnavailableException("El servicio de administración no está disponible en este momento. Intente nuevamente más tarde.");

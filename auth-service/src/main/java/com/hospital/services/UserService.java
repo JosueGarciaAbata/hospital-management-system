@@ -13,6 +13,7 @@ import java.util.List;
 
 public interface UserService {
      Page<UserResponse> findAll(Pageable pageable, boolean includeDeleted);
+     Page<UserResponse> findAllExludingUser(Long userId, Pageable pageable, boolean includeDeleted);
      List<User> findAllTesting();
      User register(CreateUserRequest request);
      User findUserByDni(String email);

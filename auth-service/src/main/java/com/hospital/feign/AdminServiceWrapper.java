@@ -2,12 +2,14 @@ package com.hospital.feign;
 
 import com.hospital.dtos.MedicalCenterDto;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 public class AdminServiceWrapper {
 
@@ -42,6 +44,7 @@ public class AdminServiceWrapper {
     }
 
     public ResponseEntity<Void> existsByUserIdFallback(Long userId, Throwable throwable) {
+        log.info("Fallback breaker");
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
     }
 

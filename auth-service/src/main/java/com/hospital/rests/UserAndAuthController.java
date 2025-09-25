@@ -2,6 +2,7 @@ package com.hospital.rests;
 
 import com.hospital.dtos.*;
 import com.hospital.entities.User;
+import com.hospital.exceptions.SelfDeletionNotAllowedException;
 import com.hospital.mappers.UserMapper;
 import com.hospital.services.PasswordResetService;
 import com.hospital.services.UserService;
@@ -36,13 +37,14 @@ public class UserAndAuthController {
 
     @GetMapping("/users")
     public ResponseEntity<Page<UserResponse>> findAllUsers(
+            @RequestHeader("X-User-Id") String userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "false") boolean includeDeleted) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
-        return ResponseEntity.ok(service.findAll(pageable, includeDeleted));
+        return ResponseEntity.ok(service.findAllExludingUser(Long.parseLong(userId), pageable, includeDeleted));
     }
 
     @GetMapping("/users/me")

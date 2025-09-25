@@ -15,6 +15,7 @@ public class UserResponse {
     private String email;
     private GenderType gender;
 
+    private boolean enabled;
     @JsonProperty("first_name")
     private String firstName;
 

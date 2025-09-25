@@ -20,11 +20,29 @@ public interface UserRepository extends JpaRepository<User, Long> {
     )
     Page<User> findAllIncludingDeleted(Pageable pageable);
 
+    @Query(
+            value = "SELECT * FROM users u WHERE u.id <> :excludedUserId AND u.enabled = true",
+            countQuery = "SELECT COUNT(*) FROM users u WHERE u.id <> :excludedUserId",
+            nativeQuery = true
+    )
+    Page<User> findAllExcludingUser(@Param("excludedUserId") Long excludedUserId, Pageable pageable);
+
+    @Query(
+            value = "SELECT * FROM users u WHERE u.id <> :excludedUserId",
+            countQuery = "SELECT COUNT(*) FROM users u WHERE u.id <> :excludedUserId",
+            nativeQuery = true
+    )
+    Page<User> findAllIncludingDeletedExcludingUser(@Param("excludedUserId") Long excludedUserId, Pageable pageable);
+
+
     @Query(value = "SELECT * FROM users", nativeQuery = true)
     List<User> findAllTesting();
 
-    boolean existsByUsername(String username);
-    boolean existsByEmail(String email);
+    @Query(value = "SELECT exists (SELECT 1 FROM users u WHERE u.dni = :dni)", nativeQuery = true)
+    boolean existsByUsername(@Param("dni") String username);
+
+    @Query(value = "SELECT exists (SELECT 1 FROM users u WHERE u.email = :email)", nativeQuery = true)
+    boolean existsByEmail(@Param("email") String email);
 
     Optional<User> findUserById(Long id);
 
