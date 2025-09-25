@@ -24,5 +24,8 @@ public class UserResponse {
     @JsonProperty("center_id")
     private Long centerId;
 
+    @JsonProperty("center_name")
+    private String centerName;
+
 
 }

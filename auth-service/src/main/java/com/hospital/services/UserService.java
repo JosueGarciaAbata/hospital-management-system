@@ -3,9 +3,15 @@ package com.hospital.services;
 import com.hospital.dtos.CreateUserRequest;
 import com.hospital.dtos.UpdatePasswordRequest;
 import com.hospital.dtos.UpdateUserRequest;
+import com.hospital.dtos.UserResponse;
 import com.hospital.entities.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 public interface UserService {
+     Page<UserResponse> findAll(Pageable pageable);
      User register(CreateUserRequest request);
      User findUserByDni(String email);
      User findUserById(Long id);

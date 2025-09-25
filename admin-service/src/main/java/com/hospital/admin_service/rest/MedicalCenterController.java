@@ -55,6 +55,15 @@ public class MedicalCenterController {
     }
 
     @RequireRole("ADMIN")
+    @PostMapping("/batch")
+    public List<MedicalCenterRead> getByIds(@RequestBody List<Long> ids,
+                                                    @RequestParam(defaultValue = "false") boolean includeDeleted) {
+        return readService.findCentersByIds(ids, includeDeleted).stream()
+                .map(mapper::toRead)
+                .toList();
+    }
+
+    @RequireRole("ADMIN")
     @PostMapping
     public ResponseEntity<MedicalCenterRead> create(@Valid @RequestBody MedicalCenterCreateRequest body) {
         MedicalCenter saved = writeService.create(mapper.toEntity(body));
