@@ -2,11 +2,13 @@ package com.hospital.rests;
 
 import com.hospital.dtos.*;
 import com.hospital.entities.User;
+import com.hospital.exceptions.SelfDeletionNotAllowedException;
 import com.hospital.mappers.UserMapper;
 import com.hospital.services.PasswordResetService;
 import com.hospital.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +17,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/auth")
@@ -24,14 +30,21 @@ public class UserAndAuthController {
     private final UserMapper mapper;
     private final PasswordResetService passwordResetService;
 
+    @GetMapping("/users/all-testing")
+    public ResponseEntity<List<UserResponse>> findAllTesting(){
+        return ResponseEntity.ok(service.findAllTesting().stream().map(mapper::toUserResponse).collect(Collectors.toList()));
+    }
+
     @GetMapping("/users")
     public ResponseEntity<Page<UserResponse>> findAllUsers(
+            @RequestHeader("X-User-Id") String userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy) {
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "false") boolean includeDeleted) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
-        return ResponseEntity.ok(service.findAll(pageable));
+        return ResponseEntity.ok(service.findAllExludingUser(Long.parseLong(userId), pageable, includeDeleted));
     }
 
     @GetMapping("/users/me")
@@ -80,11 +93,16 @@ public class UserAndAuthController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id,
                                            @RequestParam(name = "hard", defaultValue = "false") boolean hard) {
+
+        // Chequeando si el usuario es un doctor. Si es asi, no se puede eliminar
+        this.service.validateDoctorAssigned(id);
+
         if (hard) {
             this.service.hardDeleteUser(id);
         } else {
             this.service.disableUser(id);
         }
+
         return ResponseEntity.noContent().build();
     }
 

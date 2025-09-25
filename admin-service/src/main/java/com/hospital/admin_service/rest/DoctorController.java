@@ -67,6 +67,13 @@ public class DoctorController {
         return readService.findBySpecialty(specialtyId, pageable);
     }
 
+    @RequireRole("ADMIN")
+    @GetMapping("/exists-by-user/{userId}")
+    public ResponseEntity<Void> existsByUserId(@PathVariable Long userId) {
+        boolean exists = readService.existsByUserId(userId);
+        return exists ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+    }
+
     /* =========================
      *         WRITE
      * ========================= */
