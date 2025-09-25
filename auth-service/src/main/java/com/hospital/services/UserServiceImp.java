@@ -1,7 +1,9 @@
 package com.hospital.services;
 
 import com.hospital.dtos.CreateUserRequest;
+import com.hospital.dtos.MedicalCenterDto;
 import com.hospital.dtos.UpdateUserRequest;
+import com.hospital.dtos.UserResponse;
 import com.hospital.entities.Role;
 import com.hospital.entities.User;
 import com.hospital.enums.GenderType;
@@ -10,11 +12,16 @@ import com.hospital.feign.AdminServiceWrapper;
 import com.hospital.mappers.UserMapper;
 import com.hospital.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -27,6 +34,34 @@ public class UserServiceImp implements UserService {
     private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper mapper;
+
+    @Override
+    public Page<UserResponse> findAll(Pageable pageable) {
+        // Traer usuarios con paginación
+        Page<User> users = repository.findAll(pageable);
+
+        // Extraer los centerId únicos
+        List<Long> centerIds = users.stream()
+                .map(User::getCenterId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        // Llamar al admin-service en batch
+        List<MedicalCenterDto> centers = wrapper.getCentersById(centerIds, false);
+
+        // Convertir a Map<Long, String> para acceso rápido
+        Map<Long, String> centersMap = centers.stream()
+                .collect(Collectors.toMap(MedicalCenterDto::getId, MedicalCenterDto::getName));
+
+        // Mapear usuarios a UserResponse con el nombre del centro
+        return users.map(user -> {
+            UserResponse dto = mapper.toUserResponse(user);
+            String centerName = centersMap.getOrDefault(user.getCenterId(), "Centro desconocido");
+            dto.setCenterName(centerName);
+            return dto;
+        });
+    }
 
     @Override
     public User register(CreateUserRequest request) {

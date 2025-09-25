@@ -15,6 +15,9 @@
         @Query(value = "SELECT * FROM medical_centers ORDER BY id", nativeQuery = true)
         List<MedicalCenter> findAllIncludingDeleted();
 
+        @Query(value = "SELECT * FROM medical_centers WHERE id IN :ids ORDER BY id", nativeQuery = true)
+        List<MedicalCenter> findAllByIdsIncludingDeleted(@Param("ids") List<Long> ids);
+
         @Query(
                 value = "SELECT * FROM medical_centers ORDER BY id",
                 countQuery = "SELECT COUNT(*) FROM medical_centers",
