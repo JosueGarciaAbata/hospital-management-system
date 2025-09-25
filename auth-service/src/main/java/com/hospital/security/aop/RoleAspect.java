@@ -3,6 +3,7 @@ package com.hospital.security.aop;
 import com.hospital.exceptions.ForbiddenException;
 import com.hospital.exceptions.UnauthorizedException;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -16,6 +17,7 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Aspect
 @Component
 public class RoleAspect {
@@ -36,6 +38,7 @@ public class RoleAspect {
         }
 
         String rolesHeader = request.getHeader("X-Roles");
+        log.info("Los headesr que vienen son: {}", rolesHeader);
         if (rolesHeader == null) {
             throw new UnauthorizedException("Missing X-Roles");
         }
