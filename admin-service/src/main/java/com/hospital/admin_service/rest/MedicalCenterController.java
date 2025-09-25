@@ -50,7 +50,7 @@ public class MedicalCenterController {
         return readService.findAllPage(includeDeleted, pageable).map(mapper::toRead);
     }
 
-    @RequireRole("ADMIN")
+    @RequireRole({"ADMIN","DOCTOR"})
     @GetMapping("/all")
     @Operation(summary = "Listar todos los centros médicos",
             description = "Devuelve la lista completa de centros médicos sin paginación. Opcionalmente incluye registros eliminados lógicamente.")
@@ -62,7 +62,7 @@ public class MedicalCenterController {
                 .toList();
     }
 
-    @RequireRole("ADMIN")
+    @RequireRole({"ADMIN","DOCTOR"})
     @GetMapping("/{id}")
     @Operation(summary = "Obtener un centro médico por ID",
             description = "Devuelve un centro médico por su identificador. Opcionalmente incluye registros eliminados lógicamente.")
@@ -74,7 +74,7 @@ public class MedicalCenterController {
         return ResponseEntity.ok()
                 .eTag("\"" + dto.version() + "\"")
                 .body(dto);
-    }
+    }   
 
     @RequireRole("ADMIN")
     @PostMapping("/batch")

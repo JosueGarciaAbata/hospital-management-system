@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,7 +24,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/consulting/patients")
-@Tag(name = "Pacientes", description = "Gestión de pacientes en el sistema de consultas médicas")
 public class PatientController {
 
     private final PatientService service;
@@ -67,6 +67,21 @@ public class PatientController {
         }
 
         return ResponseEntity.ok(patientsPage);
+    }
+
+    @RolesAllowed({"ADMIN", "DOCTOR"})
+    @GetMapping("/all")
+    public ResponseEntity<List<PatientResponseDTO>> getAllPatients(@RequestParam Long centerId) {
+        List<PatientResponseDTO> patients = service.getAllPatients(centerId);
+
+        if (patients.isEmpty()) {
+            Map<String, String> response = Map.of(
+                    "detail", "No hay pacientes para este centro médico"
+            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        return ResponseEntity.ok(patients);
     }
 
     @RolesAllowed({"DOCTOR", "ADMIN"})

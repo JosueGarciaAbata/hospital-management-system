@@ -38,6 +38,14 @@ public class PatientServiceImp  implements  PatientService{
     }
 
     @Override
+    public List<PatientResponseDTO> getAllPatients(Long centerId) {
+        List<Patient> patients = repository.findAllByCenterIdAndDeletedFalse(centerId);
+        return patients.stream()
+                .map(mapper::toDTO)
+                .toList();
+    }
+
+    @Override
     public Page<PatientResponseDTO> getPatients(Long centerId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
 
