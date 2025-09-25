@@ -38,13 +38,16 @@ public class SpringSecurityConfig {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authz -> authz
-                        // Hay que tener encuenta que solo deberia estar permitido el endpoint de login.
-                        // Los otros endpoints deberian estar en otro microservicio (clara separacion de responsabilidades).
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
                         .requestMatchers("/auth/**").permitAll()
-                        .anyRequest().authenticated())
+                        .anyRequest().authenticated()
+                )
                 .addFilter(new JwtAuthenticationFilter(authenticationManager(), tokenJwtConfig))
-                .sessionManagement(management ->
-                        management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(m -> m.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .build();
     }
 }

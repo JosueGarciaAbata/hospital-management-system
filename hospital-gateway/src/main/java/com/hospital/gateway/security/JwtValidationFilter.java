@@ -9,9 +9,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -25,20 +27,33 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
     @Value("${SECRET_KEY}")
     private String secretKey;
 
+    private static final AntPathMatcher PATH = new AntPathMatcher();
+
+    private static final List<String> PUBLIC_PATTERNS = List.of(
+            "/swagger-ui.html", "/swagger-ui/**",
+            "/v3/api-docs", "/v3/api-docs/**", "/v3/api-docs/swagger-config",
+            "/**/v3/api-docs", "/**/v3/api-docs/**",
+            "/auth/login", "/auth/register", "/auth/request-reset", "/auth/reset-password"
+    );
+
+    private boolean isPublic(String path) {
+        return PUBLIC_PATTERNS.stream().anyMatch(p -> PATH.match(p, path));
+    }
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        String path = exchange.getRequest().getURI().getPath();
+        var request = exchange.getRequest();
 
-        // Excluir login y register
-        if (path.startsWith("/auth/login") ||
-                path.startsWith("/auth/register") ||
-                path.startsWith("/auth/request-reset") ||
-                path.startsWith("/auth/reset-password")) {
+        if (request.getMethod() == HttpMethod.OPTIONS) {
             return chain.filter(exchange);
         }
 
-        String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        String path = request.getURI().getPath();
+        if (isPublic(path)) {
+            return chain.filter(exchange);
+        }
 
+        String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
@@ -53,23 +68,20 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
                     .parseSignedClaims(token)
                     .getPayload();
 
-            // Extraer datos del token
             List<String> roles = claims.get("roles", List.class);
             String userId = claims.get("userId", String.class);
             String centerId = claims.get("centerId", String.class);
 
-            String rolesHeader = String.join(",", roles);
+            String rolesHeader = roles != null ? String.join(",", roles) : "";
 
-            // Pasar datos a los microservicios por headers
-            ServerHttpRequest modifiedRequest = exchange.getRequest().mutate()
-                    .header("X-User-Id", userId)
+            ServerHttpRequest modifiedRequest = request.mutate()
+                    .header("X-User-Id", userId != null ? userId : "")
                     .header("X-Roles", rolesHeader)
-                    .header("X-Center-Id", centerId)
+                    .header("X-Center-Id", centerId != null ? centerId : "")
                     .build();
 
             return chain.filter(exchange.mutate().request(modifiedRequest).build());
         } catch (Exception e) {
-            // Aqui le mandamos sin permisos si algo sale mal.
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
