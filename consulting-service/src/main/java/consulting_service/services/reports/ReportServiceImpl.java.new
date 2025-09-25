@@ -1,0 +1,240 @@
+package consulting_service.services.reports;
+
+import consulting_service.dtos.reports.ConsultaCentroMedicoDTO;
+import consulting_service.dtos.reports.ConsultaEspecialidadDTO;
+import consulting_service.dtos.reports.ConsultaMedicoDTO;
+import consulting_service.dtos.reports.ConsultaMensualDTO;
+import consulting_service.entities.MedicalConsultation;
+import consulting_service.repositories.MedicalConsultationsRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * Implementación del servicio de reportes
+ */
+@Service
+@Slf4j
+public class ReportServiceImpl implements ReportService {
+
+    private final MedicalConsultationsRepository consultationsRepository;
+
+    public ReportServiceImpl(MedicalConsultationsRepository consultationsRepository) {
+        this.consultationsRepository = consultationsRepository;
+    }
+
+    @Override
+    public List<ConsultaEspecialidadDTO> getConsultationsBySpecialty() {
+        try {
+            log.info("Obteniendo consultas por especialidad");
+            List<MedicalConsultation> consultations = consultationsRepository.findAll();
+            log.info("Se encontraron {} consultas en total", consultations.size());
+            
+            return consultations.stream()
+                    .filter(Objects::nonNull)
+                    .map(consultation -> {
+                        try {
+                            // Crear el DTO básico con los datos disponibles
+                            ConsultaEspecialidadDTO dto = new ConsultaEspecialidadDTO();
+                            dto.setId(consultation.getId());
+                            
+                            // Simulamos datos para demostración - en producción deberías obtener estos datos
+                            Long doctorId = consultation.getDoctorId() != null ? consultation.getDoctorId() : 0L;
+                            Long patientId = consultation.getPatientId() != null ? consultation.getPatientId() : 0L;
+                            
+                            dto.setEspecialidad("Especialidad " + doctorId);
+                            dto.setNombreMedico("Doctor ID: " + doctorId);
+                            dto.setNombrePaciente("Paciente ID: " + patientId);
+                            dto.setFechaConsulta(consultation.getDate() != null ? consultation.getDate() : LocalDateTime.now());
+                            dto.setEstado(consultation.getDeleted() != null && consultation.getDeleted() ? "CANCELADA" : "ACTIVA");
+                            return dto;
+                        } catch (Exception e) {
+                            log.error("Error al procesar consulta con ID {}: {}", 
+                                    consultation.getId(), e.getMessage(), e);
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Error al obtener consultas por especialidad: {}", e.getMessage(), e);
+            // Retornamos una lista vacía en caso de error para evitar que la aplicación falle
+            return new ArrayList<>();
+        }
+    }
+
+    @Override
+    public List<ConsultaMedicoDTO> getConsultationsByDoctor() {
+        try {
+            log.info("Obteniendo consultas por médico");
+            List<MedicalConsultation> consultations = consultationsRepository.findAll();
+            log.info("Se encontraron {} consultas en total", consultations.size());
+            
+            // Agrupar consultas por médico
+            Map<Long, ConsultaMedicoDTO> doctorMap = new HashMap<>();
+            
+            consultations.stream()
+                .filter(Objects::nonNull)
+                .forEach(consultation -> {
+                    try {
+                        Long doctorId = consultation.getDoctorId();
+                        if (doctorId == null) {
+                            log.warn("Consulta con ID {} no tiene doctorId asignado", consultation.getId());
+                            return;
+                        }
+                        
+                        if (!doctorMap.containsKey(doctorId)) {
+                            ConsultaMedicoDTO dto = new ConsultaMedicoDTO();
+                            dto.setId(doctorId);
+                            dto.setNombreMedico("Doctor ID: " + doctorId);
+                            dto.setEspecialidad("Especialidad del doctor " + doctorId);
+                            dto.setConsultas(new ArrayList<>());
+                            doctorMap.put(doctorId, dto);
+                        }
+                        
+                        ConsultaMedicoDTO.ConsultaDetalle detalle = new ConsultaMedicoDTO.ConsultaDetalle();
+                        detalle.setConsultaId(consultation.getId());
+                        detalle.setNombrePaciente("Paciente ID: " + 
+                                (consultation.getPatientId() != null ? consultation.getPatientId() : 0));
+                        detalle.setFechaConsulta(consultation.getDate() != null ? 
+                                consultation.getDate() : LocalDateTime.now());
+                        detalle.setEstado(consultation.getDeleted() != null && consultation.getDeleted() ? 
+                                "CANCELADA" : "ACTIVA");
+                        
+                        doctorMap.get(doctorId).getConsultas().add(detalle);
+                    } catch (Exception e) {
+                        log.error("Error al procesar consulta con ID {} para reporte por médico: {}", 
+                                consultation.getId(), e.getMessage(), e);
+                    }
+                });
+            
+            return new ArrayList<>(doctorMap.values());
+        } catch (Exception e) {
+            log.error("Error al obtener consultas por médico: {}", e.getMessage(), e);
+            return new ArrayList<>();
+        }
+    }
+
+    @Override
+    public List<ConsultaCentroMedicoDTO> getConsultationsByCenter() {
+        try {
+            log.info("Obteniendo consultas por centro médico");
+            List<MedicalConsultation> consultations = consultationsRepository.findAll();
+            log.info("Se encontraron {} consultas en total", consultations.size());
+            
+            // Agrupar consultas por centro médico
+            Map<Long, ConsultaCentroMedicoDTO> centerMap = new HashMap<>();
+            
+            consultations.stream()
+                .filter(Objects::nonNull)
+                .forEach(consultation -> {
+                    try {
+                        Long centerId = consultation.getCenterId();
+                        if (centerId == null) {
+                            log.warn("Consulta con ID {} no tiene centerId asignado", consultation.getId());
+                            return;
+                        }
+                        
+                        if (!centerMap.containsKey(centerId)) {
+                            ConsultaCentroMedicoDTO dto = new ConsultaCentroMedicoDTO();
+                            dto.setId(centerId);
+                            dto.setNombreCentro("Centro Médico " + centerId);
+                            dto.setDireccion("Dirección del centro " + centerId);
+                            dto.setConsultas(new ArrayList<>());
+                            centerMap.put(centerId, dto);
+                        }
+                        
+                        Long doctorId = consultation.getDoctorId() != null ? consultation.getDoctorId() : 0L;
+                        ConsultaCentroMedicoDTO.ConsultaDetalle detalle = new ConsultaCentroMedicoDTO.ConsultaDetalle();
+                        detalle.setConsultaId(consultation.getId());
+                        detalle.setNombreMedico("Doctor ID: " + doctorId);
+                        detalle.setEspecialidad("Especialidad del doctor " + doctorId);
+                        detalle.setNombrePaciente("Paciente ID: " + 
+                                (consultation.getPatientId() != null ? consultation.getPatientId() : 0));
+                        detalle.setFechaConsulta(consultation.getDate() != null ? 
+                                consultation.getDate() : LocalDateTime.now());
+                        detalle.setEstado(consultation.getDeleted() != null && consultation.getDeleted() ? 
+                                "CANCELADA" : "ACTIVA");
+                        
+                        centerMap.get(centerId).getConsultas().add(detalle);
+                    } catch (Exception e) {
+                        log.error("Error al procesar consulta con ID {} para reporte por centro: {}", 
+                                consultation.getId(), e.getMessage(), e);
+                    }
+                });
+            
+            return new ArrayList<>(centerMap.values());
+        } catch (Exception e) {
+            log.error("Error al obtener consultas por centro médico: {}", e.getMessage(), e);
+            return new ArrayList<>();
+        }
+    }
+
+    @Override
+    public List<ConsultaMensualDTO> getConsultationsByMonth() {
+        try {
+            log.info("Obteniendo consultas mensuales");
+            List<MedicalConsultation> consultations = consultationsRepository.findAll();
+            log.info("Se encontraron {} consultas en total", consultations.size());
+            
+            // Agrupar consultas por mes y año
+            Map<String, ConsultaMensualDTO> monthMap = new HashMap<>();
+            
+            consultations.stream()
+                .filter(Objects::nonNull)
+                .filter(c -> c.getDate() != null)
+                .forEach(consultation -> {
+                    try {
+                        LocalDateTime date = consultation.getDate();
+                        int month = date.getMonthValue();
+                        int year = date.getYear();
+                        String key = year + "-" + month;
+                        
+                        if (!monthMap.containsKey(key)) {
+                            ConsultaMensualDTO dto = new ConsultaMensualDTO();
+                            dto.setMes(month);
+                            dto.setAnio(year);
+                            dto.setTotalConsultas(0);
+                            dto.setEspecialidades(new ArrayList<>());
+                            monthMap.put(key, dto);
+                        }
+                        
+                        // Incrementar contador de consultas
+                        ConsultaMensualDTO monthDto = monthMap.get(key);
+                        monthDto.setTotalConsultas(monthDto.getTotalConsultas() + 1);
+                        
+                        // Actualizar contador por especialidad (simulado)
+                        Long doctorId = consultation.getDoctorId() != null ? consultation.getDoctorId() : 0L;
+                        String specialty = "Especialidad " + doctorId;
+                        boolean found = false;
+                        
+                        for (ConsultaMensualDTO.ResumenEspecialidad esp : monthDto.getEspecialidades()) {
+                            if (esp.getNombreEspecialidad().equals(specialty)) {
+                                esp.setCantidadConsultas(esp.getCantidadConsultas() + 1);
+                                found = true;
+                                break;
+                            }
+                        }
+                        
+                        if (!found) {
+                            ConsultaMensualDTO.ResumenEspecialidad resumen = new ConsultaMensualDTO.ResumenEspecialidad();
+                            resumen.setNombreEspecialidad(specialty);
+                            resumen.setCantidadConsultas(1);
+                            monthDto.getEspecialidades().add(resumen);
+                        }
+                    } catch (Exception e) {
+                        log.error("Error al procesar consulta con ID {} para reporte mensual: {}", 
+                                consultation.getId(), e.getMessage(), e);
+                    }
+                });
+            
+            return new ArrayList<>(monthMap.values());
+        } catch (Exception e) {
+            log.error("Error al obtener consultas mensuales: {}", e.getMessage(), e);
+            return new ArrayList<>();
+        }
+    }
+}

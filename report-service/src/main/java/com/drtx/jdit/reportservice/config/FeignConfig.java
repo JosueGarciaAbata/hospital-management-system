@@ -4,6 +4,6 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableFeignClients(basePackages = "com.drtx.jdit.reportservice.feign")
+@EnableFeignClients(basePackages = "com.drtx.jdit.reportservice.external.feign")
 public class FeignConfig {
 }

@@ -20,23 +20,53 @@ public class RoleCheckAspect {
 
     @Around("@annotation(rolesAllowed)")
     public Object checkRole(ProceedingJoinPoint joinPoint, RolesAllowed rolesAllowed) throws Throwable {
-        ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = attrs.getRequest();
-
-        String rolesHeader = request.getHeader("X-Roles");
-
-        List<String> userRoles = Arrays.asList(rolesHeader.split(","));
-        boolean allowed = Arrays.stream(rolesAllowed.value())
-                .anyMatch(userRoles::contains);
-        //si se necesita al menos uno entonces cambiar por any
-        if (!allowed) {
+        try {
+            ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attrs == null) {
+                throw new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "No se pudo obtener el contexto de la solicitud"
+                );
+            }
+            
+            HttpServletRequest request = attrs.getRequest();
+            String rolesHeader = request.getHeader("X-Roles");
+            
+            // Log para depuración
+            System.out.println("Headers de la solicitud:");
+            request.getHeaderNames().asIterator().forEachRemaining(headerName -> 
+                System.out.println(headerName + ": " + request.getHeader(headerName))
+            );
+            
+            if (rolesHeader == null || rolesHeader.isEmpty()) {
+                throw new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "Header X-Roles no encontrado en la solicitud"
+                );
+            }
+            
+            List<String> userRoles = Arrays.asList(rolesHeader.split(","));
+            boolean allowed = Arrays.stream(rolesAllowed.value())
+                    .anyMatch(userRoles::contains);
+            
+            if (!allowed) {
+                throw new ResponseStatusException(
+                        HttpStatus.FORBIDDEN,
+                        "El usuario no cuenta con el/los roles necesarios para acceder a este endpoint"
+                );
+            }
+            
+            return joinPoint.proceed();
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            System.err.println("Error en la verificación de roles: " + e.getMessage());
+            e.printStackTrace();
             throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "El usuario no cuenta con el/los roles necesarios para acceder a este endpoint"
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error al verificar los roles: " + e.getMessage()
             );
         }
-
-        return joinPoint.proceed();
     }
 
 }

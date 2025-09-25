@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -28,7 +27,7 @@ public class PatientController {
         this.mapper = mapper;
     }
 
-    /*
+    /**
      * Aunque el gateway pone el centerId en los headers (@RequestHeader("X-Center-Id") Long centerId),
      * en caso de que otro microservicio lo necesite tal vez no sea lo más óptimo,
      * así que mejor lo mando como RequestParam.
@@ -51,7 +50,6 @@ public class PatientController {
 
         return ResponseEntity.ok(patientsPage);
     }
-
 
     @RolesAllowed({"DOCTOR", "ADMIN"})
     @GetMapping("/center-has-patients/{centerId}")
