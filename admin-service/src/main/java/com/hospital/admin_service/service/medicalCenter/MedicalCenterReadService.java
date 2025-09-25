@@ -36,6 +36,10 @@ public class MedicalCenterReadService {
                 ));
     }
 
+    public List<MedicalCenter> findCentersByIds(List<Long> ids, boolean includeDeleted) {
+        return includeDeleted ? repository.findAllByIdsIncludingDeleted(ids) : repository.findAllById(ids);
+    }
+
     public boolean existsById(Long id) {
         return repository.existsById(id);
     }
