@@ -36,4 +36,14 @@ public class AdminServiceWrapper {
         return  List.of();
     }
 
+    @CircuitBreaker(name = "adminService", fallbackMethod = "existsByUserIdFallback")
+    public ResponseEntity<Void> existsByUserId(Long userId) {
+        return adminClient.existsByUserId(userId);
+    }
+
+    public ResponseEntity<Void> existsByUserIdFallback(Long userId, Throwable throwable) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+    }
+
+
 }

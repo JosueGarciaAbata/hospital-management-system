@@ -7,11 +7,13 @@ import com.hospital.dtos.UserResponse;
 import com.hospital.entities.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
 public interface UserService {
-     Page<UserResponse> findAll(Pageable pageable);
+     Page<UserResponse> findAll(Pageable pageable, boolean includeDeleted);
+     List<User> findAllTesting();
      User register(CreateUserRequest request);
      User findUserByDni(String email);
      User findUserById(Long id);
@@ -22,4 +24,5 @@ public interface UserService {
      void disableUser(Long id);
      void hardDeleteUser(Long id);
      User findByUsername(String username);
+     void validateDoctorAssigned(Long id);
 }

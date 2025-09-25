@@ -18,4 +18,7 @@ public interface AdminClient {
     List<MedicalCenterDto> getCentersByIds(@RequestBody List<Long> ids,
                                            @RequestParam(value = "includeDeleted", defaultValue = "false") boolean includeDeleted);
 
+    @GetMapping("/admin/doctors/exists-by-user/{userId}")
+    ResponseEntity<Void> existsByUserId(@PathVariable Long userId);
+
 }

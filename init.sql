@@ -203,18 +203,10 @@ VALUES
     ('doctor006', 'valeria.silva@hospital.com', crypt('doctor123', gen_salt('bf')), 'FEMALE', 'Valeria', 'Silva', TRUE, 1),
     ('doctor007', 'ricardo.fuentes@hospital.com', crypt('doctor123', gen_salt('bf')), 'MALE', 'Ricardo', 'Fuentes', TRUE, 1),
     ('doctor008', 'laura.morales@hospital.com', crypt('doctor123', gen_salt('bf')), 'FEMALE', 'Laura', 'Morales', TRUE, 1),
-    ('doctor009', 'javier.ortiz@hospital.com', crypt('doctor123', gen_salt('bf')), 'MALE', 'Javier', 'Ortiz', TRUE, 1),
-    ('doctor010', 'carolina.mendez@hospital.com', crypt('doctor123', gen_salt('bf')), 'FEMALE', 'Carolina', 'Mendez', TRUE, 1),
-    ('doctor011', 'sergio.ruiz@hospital.com', crypt('doctor123', gen_salt('bf')), 'MALE', 'Sergio', 'Ruiz', TRUE, 1),
-    ('doctor012', 'andrea.castro@hospital.com', crypt('doctor123', gen_salt('bf')), 'FEMALE', 'Andrea', 'Castro', TRUE, 1),
-    ('doctor013', 'gustavo.ramirez@hospital.com', crypt('doctor123', gen_salt('bf')), 'MALE', 'Gustavo', 'Ramirez', FALSE, 1), -- deshabilitado
-    ('doctor014', 'monica.paredes@hospital.com', crypt('doctor123', gen_salt('bf')), 'FEMALE', 'Monica', 'Paredes', TRUE, 1),
-    ('doctor015', 'fernando.lopez@hospital.com', crypt('doctor123', gen_salt('bf')), 'MALE', 'Fernando', 'Lopez', TRUE, 1),
-    ('doctor016', 'sofia.vargas@hospital.com', crypt('doctor123', gen_salt('bf')), 'FEMALE', 'Sofia', 'Vargas', TRUE, 1),
-    ('doctor017', 'daniel.carrillo@hospital.com', crypt('doctor123', gen_salt('bf')), 'MALE', 'Daniel', 'Carrillo', TRUE, 1),
-    ('doctor018', 'natalia.fernandez@hospital.com', crypt('doctor123', gen_salt('bf')), 'FEMALE', 'Natalia', 'Fernandez', TRUE, 1),
-    ('doctor019', 'alejandro.soto@hospital.com', crypt('doctor123', gen_salt('bf')), 'MALE', 'Alejandro', 'Soto', TRUE, 1),
-    ('doctor020', 'gabriela.moreno@hospital.com', crypt('doctor123', gen_salt('bf')), 'FEMALE', 'Gabriela', 'Moreno', TRUE, 1);
+    ('doctor009', 'javier.ortiz@hospital.com', crypt('doctor123', gen_salt('bf')), 'MALE', 'Javier', 'Ortiz', FALSE, 1),
+    ('doctor010', 'carolina.mendez@hospital.com', crypt('doctor123', gen_salt('bf')), 'FEMALE', 'Carolina', 'Mendez', FALSE, 1),
+    ('doctor011', 'sergio.ruiz@hospital.com', crypt('doctor123', gen_salt('bf')), 'MALE', 'Sergio', 'Ruiz', FALSE, 1),
+    ('doctor012', 'andrea.castro@hospital.com', crypt('doctor123', gen_salt('bf')), 'FEMALE', 'Andrea', 'Castro', FALSE, 1);
 
 
 -- Link user to DOCTOR ROL

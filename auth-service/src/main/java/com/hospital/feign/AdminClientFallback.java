@@ -22,4 +22,9 @@ public class AdminClientFallback implements AdminClient {
         return List.of();
     }
 
+    @Override
+    public ResponseEntity<Void> existsByUserId(Long userId) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+    }
+
 }

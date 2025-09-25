@@ -3,6 +3,7 @@ package com.hospital.exceptions;
 import feign.FeignException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.parsing.Problem;
 import org.springframework.boot.autoconfigure.batch.BatchTaskExecutor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -47,7 +48,8 @@ public class GlobalExceptionHandler {
     }
 
     // Recurso no encontrado (entidades)
-    @ExceptionHandler({RoleNotFoundException.class,
+    @ExceptionHandler({
+            RoleNotFoundException.class,
             UserNotFoundException.class,
             CenterIdNotFoundException.class,
             UserByDniNotFoundException.class,
@@ -94,6 +96,15 @@ public class GlobalExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
         problem.setTitle("Error al enviar correo");
         problem.setDetail("No se pudo enviar el correo: " + ex.getMessage());
+        return problem;
+    }
+
+    // Integridad de datos personalizada
+    @ExceptionHandler({DoctorAssignedException.class})
+    public ProblemDetail handleDataIntegrity(Exception ex) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        problem.setTitle("Violación de integridad de datos");
+        problem.setDetail(ex.getMessage());
         return problem;
     }
 
