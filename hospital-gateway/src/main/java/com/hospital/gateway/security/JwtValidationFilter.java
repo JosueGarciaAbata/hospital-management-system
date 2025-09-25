@@ -30,7 +30,10 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
         String path = exchange.getRequest().getURI().getPath();
 
         // Excluir login y register
-        if (path.startsWith("/auth/login") || path.startsWith("/auth/register")) {
+        if (path.startsWith("/auth/login") ||
+                path.startsWith("/auth/register") ||
+                path.startsWith("/auth/request-reset") ||
+                path.startsWith("/auth/reset-password")) {
             return chain.filter(exchange);
         }
 

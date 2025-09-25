@@ -17,6 +17,11 @@ public record DoctorRegisterRequest(
         @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
         String password,
 
+        @NotBlank(message = "El correo es requerido")
+        @Email(message = "Correo inválido")
+        @Size(max = 150, message = "máx 150")
+        String email,
+
         @Pattern(regexp = "MALE|FEMALE", message = "El género debe ser MALE o FEMALE")
         String gender,
 

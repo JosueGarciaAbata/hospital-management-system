@@ -38,14 +38,13 @@ public class DoctorController {
     @GetMapping
     public Page<DoctorRead> list(@RequestParam(defaultValue = "false") boolean includeDeleted,
                                  Pageable pageable) {
-        return readService.findAllPage(includeDeleted, pageable).map(mapper::toRead);
+        return readService.findAllPage(includeDeleted, pageable);
     }
 
     @RequireRole("ADMIN")
     @GetMapping("/all")
     public List<DoctorRead> listAll(@RequestParam(defaultValue = "false") boolean includeDeleted) {
         return readService.findAllEntities(includeDeleted).stream()
-                .map(mapper::toRead)
                 .toList();
     }
 
@@ -53,19 +52,19 @@ public class DoctorController {
     @GetMapping("/{id}")
     public DoctorRead getOne(@PathVariable Long id,
                              @RequestParam(defaultValue = "false") boolean includeDeleted) {
-        return mapper.toRead(readService.findEntityById(id, includeDeleted));
+        return readService.findEntityById(id, includeDeleted);
     }
 
     @RequireRole("ADMIN")
     @GetMapping("/by-user/{userId}")
     public DoctorRead getByUserId(@PathVariable Long userId) {
-        return mapper.toRead(readService.findByUserId(userId));
+        return readService.findByUserId(userId);
     }
 
     @RequireRole("ADMIN")
     @GetMapping("/by-specialty/{specialtyId}")
     public Page<DoctorRead> listBySpecialty(@PathVariable Long specialtyId, Pageable pageable) {
-        return readService.findBySpecialty(specialtyId, pageable).map(mapper::toRead);
+        return readService.findBySpecialty(specialtyId, pageable);
     }
 
     /* =========================
