@@ -41,5 +41,7 @@ public record DoctorRead(
         Instant createdAt,
 
         @Schema(description = "Fecha y hora de última actualización del registro (UTC).", example = "2025-03-05T09:15:00Z")
-        Instant updatedAt
+        Instant updatedAt,
+
+        Boolean deleted
 ) {}
