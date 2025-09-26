@@ -169,12 +169,12 @@ INSERT INTO medical_centers (name, city, address) VALUES
                                                       ('Hospital General Docente Ambato', 'Ambato', 'Av. Luis Pasteur y Av. Unidad Nacional');
 
 
--- Insert default admin user (password: admin123)
+-- Insert default admin user for Centro Médico 1 (Quito)
 INSERT INTO users (dni, email, password, gender, first_name, last_name, enabled, center_id)
 VALUES (
            '1500903685',
            'josuegarcab2@hotmail.com',
-           crypt('admin123456789', gen_salt('bf')),
+           crypt('admin123', gen_salt('bf')),
            'MALE',
            'System',
            'Admin',
@@ -182,20 +182,48 @@ VALUES (
            1
        );
 
+-- Insert default admin user for Centro Médico 2 (Guayaquil)
+INSERT INTO users (dni, email, password, gender, first_name, last_name, enabled, center_id)
+VALUES (
+           '0912345678',
+           'admin.guayaquil@example.com',
+           crypt('admin123', gen_salt('bf')),
+           'FEMALE',
+           'System',
+           'Admin',
+           TRUE,
+           2
+       );
+
+-- Insert default admin user for Centro Médico 3 (Ambato)
+INSERT INTO users (dni, email, password, gender, first_name, last_name, enabled, center_id)
+VALUES (
+           '1712345678',
+           'admin.ambato@example.com',
+           crypt('admin123', gen_salt('bf')),
+           'MALE',
+           'System',
+           'Admin',
+           TRUE,
+           3
+       );
+
 -- Link user to ADMIN role
-INSERT INTO users_roles (user_id, role_id) VALUES (1, 1);
+INSERT INTO users_roles (user_id,    role_id) VALUES (1, 1);
+INSERT INTO users_roles (user_id,    role_id) VALUES (2, 1);
+INSERT INTO users_roles (user_id,    role_id) VALUES (3, 1);
 
 -- Insertar usuarios doctores (dni válidos EC)
 INSERT INTO users (dni, email, password, gender, first_name, last_name, enabled, center_id) VALUES
                                                                                                 ('1849488182','doctor@hotmail.com',crypt('doctor123',gen_salt('bf')),'MALE','Juan','Perez',TRUE,1),
                                                                                                 ('1552501056','martin.gomez@hospital.com',crypt('doctor123',gen_salt('bf')),'MALE','Martin','Gomez',TRUE,1),
                                                                                                 ('0820194900','valeria.silva@hospital.com',crypt('doctor123',gen_salt('bf')),'FEMALE','Valeria','Silva',TRUE,1),
-                                                                                                ('2335515249','ricardo.fuentes@hospital.com',crypt('doctor123',gen_salt('bf')),'MALE','Ricardo','Fuentes',TRUE,1),
-                                                                                                ('0227907425','laura.morales@hospital.com',crypt('doctor123',gen_salt('bf')),'FEMALE','Laura','Morales',TRUE,1),
-                                                                                                ('1509184485','javier.ortiz@hospital.com',crypt('doctor123',gen_salt('bf')),'MALE','Javier','Ortiz',FALSE,1),
-                                                                                                ('2002638654','carolina.mendez@hospital.com',crypt('doctor123',gen_salt('bf')),'FEMALE','Carolina','Mendez',FALSE,1),
-                                                                                                ('1617335060','sergio.ruiz@hospital.com',crypt('doctor123',gen_salt('bf')),'MALE','Sergio','Ruiz',FALSE,1),
-                                                                                                ('1209534963','andrea.castro@hospital.com',crypt('doctor123',gen_salt('bf')),'FEMALE','Andrea','Castro',FALSE,1);
+                                                                                                ('2335515249','ricardo.fuentes@hospital.com',crypt('doctor123',gen_salt('bf')),'MALE','Ricardo','Fuentes',TRUE,3),
+                                                                                                ('0227907425','laura.morales@hospital.com',crypt('doctor123',gen_salt('bf')),'FEMALE','Laura','Morales',TRUE,3),
+                                                                                                ('1509184485','javier.ortiz@hospital.com',crypt('doctor123',gen_salt('bf')),'MALE','Javier','Ortiz',FALSE,3),
+                                                                                                ('2002638654','carolina.mendez@hospital.com',crypt('doctor123',gen_salt('bf')),'FEMALE','Carolina','Mendez',FALSE,2),
+                                                                                                ('1617335060','sergio.ruiz@hospital.com',crypt('doctor123',gen_salt('bf')),'MALE','Sergio','Ruiz',FALSE,2),
+                                                                                                ('1209534963','andrea.castro@hospital.com',crypt('doctor123',gen_salt('bf')),'FEMALE','Andrea','Castro',FALSE,2);
 
 -- Asignar rol DOCTOR (id=2) a todos estos usuarios
 INSERT INTO users_roles (user_id, role_id) SELECT id, 2 FROM users WHERE dni IN ('1849488182','1552501056','0820194900','2335515249','0227907425','1509184485','2002638654','1617335060','1209534963');
@@ -244,95 +272,30 @@ INSERT INTO patients (dni, first_name, last_name, birth_date, gender, center_id,
 VALUES
     ('patient001', 'Alice', 'Johnson', '1990-01-15', 'FEMALE', 1, FALSE),
     ('patient002', 'Bob', 'Smith', '1985-06-20', 'MALE', 1, FALSE),
-    ('patient003', 'Carol', 'Davis', '2000-03-10', 'FEMALE', 1, FALSE),
-    ('patient004', 'David', 'Martinez', '1995-09-05', 'MALE', 1, FALSE),
-    ('patient005', 'Eva', 'Lopez', '1988-12-30', 'FEMALE', 1, FALSE);
+    ('patient003', 'Carol', 'Davis', '2000-03-10', 'FEMALE', 2, FALSE),
+    ('patient004', 'David', 'Martinez', '1995-09-05', 'MALE', 2, FALSE),
+    ('patient005', 'Eva', 'Lopez', '1988-12-30', 'FEMALE', 3, FALSE);
 
--- =========================
--- Nuevo Doctor 2
--- =========================
-INSERT INTO users (dni, email, password, gender, first_name, last_name, enabled, center_id)
-VALUES (
-           'doctor002',
-           'doctor2@example.com',
-           crypt('doctor234', gen_salt('bf')),
-           'MALE',
-           'Carlos',
-           'García',
-           TRUE,
-           1
-       );
-
--- Asignar rol DOCTOR al usuario (user_id = 3)
-INSERT INTO users_roles (user_id, role_id) VALUES (3, 2);
-
--- Crear doctor vinculado a la especialidad 1
-INSERT INTO doctors (user_id, specialty_id)
-VALUES (3, 1);
 
 
 -- =========================
--- Nuevo Doctor 3
+-- Insert 5 medical consultation
 -- =========================
-INSERT INTO users (dni, email, password, gender, first_name, last_name, enabled, center_id)
-VALUES (
-           'doctor003',
-           'doctor3@example.com',
-           crypt('doctor345', gen_salt('bf')),
-           'FEMALE',
-           'María',
-           'López',
-           TRUE,
-           1
-       );
-
--- Asignar rol DOCTOR al usuario (user_id = 4)
-INSERT INTO users_roles (user_id, role_id) VALUES (4, 2);
-
--- Crear doctor vinculado a la especialidad 1
-INSERT INTO doctors (user_id, specialty_id)
-VALUES (4, 1);
-
-
--- =========================
--- Nuevo Doctor 4
--- =========================
-INSERT INTO users (dni, email, password, gender, first_name, last_name, enabled, center_id)
-VALUES (
-           'doctor004',
-           'doctor4@example.com',
-           crypt('doctor456', gen_salt('bf')),
-           'MALE',
-           'Luis',
-           'Martínez',
-           TRUE,
-           1
-       );
-
--- Asignar rol DOCTOR al usuario (user_id = 5)
-INSERT INTO users_roles (user_id, role_id) VALUES (5, 2);
-
--- Crear doctor vinculado a la especialidad 1
-INSERT INTO doctors (user_id, specialty_id)
-VALUES (5, 1);
-
-
-INSERT INTO medical_consultations
-(patient_id, doctor_id, center_id, "date", diagnosis, treatment, notes, deleted, created_at, updated_at)
+INSERT INTO medical_consultations (patient_id, doctor_id, center_id, date, diagnosis, treatment, notes)
 VALUES
 -- Consultas paciente 1 (Alice Johnson)
 (1, 1, 1, '2025-09-21 10:00:00', 'Gripe común', 'Reposo y líquidos', 'Paciente con fiebre y tos'),
 (1, 1, 1, '2025-09-22 11:30:00', 'Dolor de cabeza', 'Analgésicos', 'Dolor leve, seguimiento recomendado'),
 
 -- Consultas paciente 2 (Bob Smith)
-(2, 1, 1, '2025-09-23 09:00:00', 'Chequeo rutinario', 'Ninguno', 'Todo dentro de parámetros normales'),
-(2, 1, 1, '2025-09-24 14:15:00', 'Infección de garganta', 'Antibióticos', 'Revisar respuesta en 5 días'),
+(2, 1, 2, '2025-09-23 09:00:00', 'Chequeo rutinario', 'Ninguno', 'Todo dentro de parámetros normales'),
+(2, 2, 2, '2025-09-24 14:15:00', 'Infección de garganta', 'Antibióticos', 'Revisar respuesta en 5 días'),
 
 -- Consultas paciente 3 (Carol Davis)
-(3, 1, 1, '2025-09-25 08:45:00', 'Control postoperatorio', 'Curaciones y reposo', 'Paciente estable, cicatrización correcta'),
+(3, 3, 2, '2025-09-25 08:45:00', 'Control postoperatorio', 'Curaciones y reposo', 'Paciente estable, cicatrización correcta'),
 
 -- Consultas paciente 4 (David Martinez)
-(4, 1, 1, '2025-09-25 09:30:00', 'Dolor de espalda', 'Fisioterapia', 'Seguir tratamiento por 2 semanas'),
+(4, 1, 3, '2025-09-25 09:30:00', 'Dolor de espalda', 'Fisioterapia', 'Seguir tratamiento por 2 semanas'),
 
 -- Consultas paciente 5 (Eva Lopez)
-(5, 1, 1, '2025-09-26 10:00:00', 'Alergia estacional', 'Antihistamínicos', 'Revisar síntomas en 1 semana');
+(5, 2, 3, '2025-09-26 10:00:00', 'Alergia estacional', 'Antihistamínicos', 'Revisar síntomas en 1 semana');
