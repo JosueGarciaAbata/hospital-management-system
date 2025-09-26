@@ -276,12 +276,77 @@ VALUES
     ('patient004', 'David', 'Martinez', '1995-09-05', 'MALE', 2, FALSE),
     ('patient005', 'Eva', 'Lopez', '1988-12-30', 'FEMALE', 3, FALSE);
 
+-- =========================
+-- Nuevo Doctor 2
+-- =========================
+INSERT INTO users (dni, email, password, gender, first_name, last_name, enabled, center_id)
+VALUES (
+           'doctor002',
+           'doctor2@example.com',
+           crypt('doctor234', gen_salt('bf')),
+           'MALE',
+           'Carlos',
+           'García',
+           TRUE,
+           1
+       );
+
+-- Asignar rol DOCTOR al usuario (user_id = 3)
+INSERT INTO users_roles (user_id, role_id) VALUES (3, 2);
+
+-- Crear doctor vinculado a la especialidad 1
+INSERT INTO doctors (user_id, specialty_id)
+VALUES (3, 1);
 
 
 -- =========================
--- Insert 5 medical consultation
+-- Nuevo Doctor 3
 -- =========================
-INSERT INTO medical_consultations (patient_id, doctor_id, center_id, date, diagnosis, treatment, notes)
+INSERT INTO users (dni, email, password, gender, first_name, last_name, enabled, center_id)
+VALUES (
+           'doctor003',
+           'doctor3@example.com',
+           crypt('doctor345', gen_salt('bf')),
+           'FEMALE',
+           'María',
+           'López',
+           TRUE,
+           1
+       );
+
+-- Asignar rol DOCTOR al usuario (user_id = 4)
+INSERT INTO users_roles (user_id, role_id) VALUES (4, 2);
+
+-- Crear doctor vinculado a la especialidad 1
+INSERT INTO doctors (user_id, specialty_id)
+VALUES (4, 1);
+
+
+-- =========================
+-- Nuevo Doctor 4
+-- =========================
+INSERT INTO users (dni, email, password, gender, first_name, last_name, enabled, center_id)
+VALUES (
+           'doctor004',
+           'doctor4@example.com',
+           crypt('doctor456', gen_salt('bf')),
+           'MALE',
+           'Luis',
+           'Martínez',
+           TRUE,
+           1
+       );
+
+-- Asignar rol DOCTOR al usuario (user_id = 5)
+INSERT INTO users_roles (user_id, role_id) VALUES (5, 2);
+
+-- Crear doctor vinculado a la especialidad 1
+INSERT INTO doctors (user_id, specialty_id)
+VALUES (5, 1);
+
+
+INSERT INTO medical_consultations
+(patient_id, doctor_id, center_id, "date", diagnosis, treatment, notes, deleted, created_at, updated_at)
 VALUES
 -- Consultas paciente 1 (Alice Johnson)
 (1, 1, 1, '2025-09-21 10:00:00', 'Gripe común', 'Reposo y líquidos', 'Paciente con fiebre y tos'),
