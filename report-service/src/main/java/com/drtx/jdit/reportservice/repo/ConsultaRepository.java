@@ -53,7 +53,7 @@ public interface ConsultaRepository {
         List<Map<String, Object>> rawData = getConsultasPorEspecialidad(token, defaultRequest);
         return rawData.stream()
             .map(data -> ConsultaEspecialidadDTO.builder()
-                .id((Long) data.get("id"))
+                .id(convertToLong(data.get("id")))
                 .especialidad((String) data.get("especialidad"))
                 .nombreMedico((String) data.get("nombreMedico"))
                 .nombrePaciente((String) data.get("nombrePaciente"))
@@ -91,5 +91,32 @@ public interface ConsultaRepository {
         MonthlyReportRequestDTO defaultRequest = MonthlyReportRequestDTO.builder().build();
         // Implementación básica - retorna lista vacía por compatibilidad
         return java.util.Collections.emptyList();
+    }
+    
+    /**
+     * Safely converts an Object to Long, handling Integer and Long types
+     */
+    default Long convertToLong(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Long) {
+            return (Long) value;
+        }
+        if (value instanceof Integer) {
+            return ((Integer) value).longValue();
+        }
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+        // Try to parse as string if it's a string representation
+        if (value instanceof String) {
+            try {
+                return Long.parseLong((String) value);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
     }
 }

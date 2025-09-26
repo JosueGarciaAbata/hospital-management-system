@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -464,11 +465,11 @@ public class ReportServiceImpl implements ReportService {
      */
     private SpecialtyConsultationDTO mapToSpecialtyConsultationDTO(Map<String, Object> data) {
         return SpecialtyConsultationDTO.builder()
-            .id((Long) data.get("id"))
+            .id(convertToLong(data.get("id")))
             .specialty((String) data.get("especialidad"))
             .doctorName((String) data.get("nombreMedico"))
             .patientName((String) data.get("nombrePaciente"))
-            .consultationDate((LocalDateTime) data.get("fechaConsulta"))
+            .consultationDate(convertToLocalDateTime(data.get("fechaConsulta")))
             .status((String) data.get("estado"))
             .build();
     }
@@ -484,16 +485,16 @@ public class ReportServiceImpl implements ReportService {
         if (consultasData != null) {
             consultations = consultasData.stream()
                 .map(consultaData -> DoctorConsultationDTO.ConsultationDetail.builder()
-                    .id((Long) consultaData.get("consultaId"))
+                    .id(convertToLong(consultaData.get("consultaId")))
                     .patientName((String) consultaData.get("nombrePaciente"))
-                    .consultationDate((LocalDateTime) consultaData.get("fechaConsulta"))
+                    .consultationDate(convertToLocalDateTime(consultaData.get("fechaConsulta")))
                     .status((String) consultaData.get("estado"))
                     .build())
                 .collect(java.util.stream.Collectors.toList());
         }
         
         return DoctorConsultationDTO.builder()
-            .doctorId((Long) data.get("id"))
+            .doctorId(convertToLong(data.get("id")))
             .doctorName((String) data.get("nombreMedico"))
             .specialty((String) data.get("especialidad"))
             .totalConsultations((long) consultations.size())
@@ -512,18 +513,18 @@ public class ReportServiceImpl implements ReportService {
         if (consultasData != null) {
             consultations = consultasData.stream()
                 .map(consultaData -> MedicalCenterConsultationDTO.ConsultationDetail.builder()
-                    .id((Long) consultaData.get("consultaId"))
+                    .id(convertToLong(consultaData.get("consultaId")))
                     .doctorName((String) consultaData.get("nombreMedico"))
                     .patientName((String) consultaData.get("nombrePaciente"))
                     .specialty((String) consultaData.get("especialidad"))
-                    .consultationDate((LocalDateTime) consultaData.get("fechaConsulta"))
+                    .consultationDate(convertToLocalDateTime(consultaData.get("fechaConsulta")))
                     .status((String) consultaData.get("estado"))
                     .build())
                 .collect(java.util.stream.Collectors.toList());
         }
         
         return MedicalCenterConsultationDTO.builder()
-            .centerId((Long) data.get("id"))
+            .centerId(convertToLong(data.get("id")))
             .centerName((String) data.get("nombreCentro"))
             .address((String) data.get("direccion"))
             .totalConsultations((long) consultations.size())
@@ -860,5 +861,63 @@ public class ReportServiceImpl implements ReportService {
             .totalSpecialties(totalSpecialties)
             .additionalStatistics(additionalStatistics)
             .build();
+    }
+    
+    /**
+     * Safely converts an Object to Long, handling Integer and Long types
+     */
+    private Long convertToLong(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Long) {
+            return (Long) value;
+        }
+        if (value instanceof Integer) {
+            return ((Integer) value).longValue();
+        }
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+        // Try to parse as string if it's a string representation
+        if (value instanceof String) {
+            try {
+                return Long.parseLong((String) value);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Safely converts an Object to LocalDateTime, handling String and LocalDateTime types
+     */
+    private LocalDateTime convertToLocalDateTime(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof LocalDateTime) {
+            return (LocalDateTime) value;
+        }
+        if (value instanceof String) {
+            try {
+                // Try parsing ISO format first (e.g., 2023-12-01T10:30:00)
+                return LocalDateTime.parse((String) value);
+            } catch (Exception e1) {
+                try {
+                    // Try parsing with custom format if needed
+                    return LocalDateTime.parse((String) value, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                } catch (Exception e2) {
+                    try {
+                        // Try parsing as ISO instant and convert to LocalDateTime
+                        return LocalDateTime.parse((String) value, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    } catch (Exception e3) {
+                        return null;
+                    }
+                }
+            }
+        }
+        return null;
     }
 }
