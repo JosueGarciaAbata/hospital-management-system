@@ -57,7 +57,7 @@ public class ReportServiceImpl implements ReportService {
             return switch (format) {
                 case EXCEL -> reportExportUtil.exportToExcel(exportFormat, reportName);
                 case CSV -> reportExportUtil.exportToCsv(exportFormat).getBytes(StandardCharsets.UTF_8);
-                case PDF -> throw new UnsupportedOperationException("PDF format is not yet supported");
+                case PDF -> reportExportUtil.exportToPdf(exportFormat, reportName);
                 default -> throw new IllegalArgumentException("Unsupported report format: " + format);
             };
         } catch (IllegalArgumentException e) {

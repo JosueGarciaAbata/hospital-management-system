@@ -2,6 +2,13 @@ package com.drtx.jdit.reportservice.utils;
 
 import com.drtx.jdit.reportservice.dto.ReportResponseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.itextpdf.html2pdf.HtmlConverter;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.*;
+import com.itextpdf.layout.properties.TextAlignment;
+import com.itextpdf.layout.properties.UnitValue;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -19,7 +26,6 @@ import java.util.Map;
  * Utility for exporting reports to different formats
  */
 @Component
-@Slf4j
 public class ReportExportUtil {
 
     private final ObjectMapper objectMapper;
@@ -161,6 +167,226 @@ public class ReportExportUtil {
         }
         
         return csv.toString();
+    }
+    
+    /**
+     * Exports a report to PDF format
+     * @param <T> data type of the report
+     * @param report the report to export
+     * @param reportTitle title of the report
+     * @return byte array with PDF content
+     */
+    public <T> byte[] exportToPdf(ReportResponseDTO<T> report, String reportTitle) {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            
+            PdfWriter writer = new PdfWriter(outputStream);
+            PdfDocument pdfDoc = new PdfDocument(writer);
+            Document document = new Document(pdfDoc);
+            
+            // Add title
+            Paragraph title = new Paragraph(reportTitle)
+                .setTextAlignment(TextAlignment.CENTER)
+                .setFontSize(18)
+                .setBold();
+            document.add(title);
+            
+            // Add generation date
+            Paragraph dateInfo = new Paragraph("Generated on: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .setTextAlignment(TextAlignment.CENTER)
+                .setFontSize(10)
+                .setMarginBottom(20);
+            document.add(dateInfo);
+            
+            // Add report summary if available
+            if (report.getMessage() != null && !report.getMessage().isEmpty()) {
+                Paragraph summary = new Paragraph("Summary: " + report.getMessage())
+                    .setFontSize(12)
+                    .setMarginBottom(15);
+                document.add(summary);
+            }
+            
+            // Add total elements info
+            if (report.getTotalElements() > 0) {
+                Paragraph totalInfo = new Paragraph("Total Records: " + report.getTotalElements())
+                    .setFontSize(10)
+                    .setMarginBottom(15);
+                document.add(totalInfo);
+            }
+            
+            List<T> data = report.getData();
+            if (data == null || data.isEmpty()) {
+                Paragraph noData = new Paragraph("No data available for this report")
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setFontSize(12);
+                document.add(noData);
+                document.close();
+                return outputStream.toByteArray();
+            }
+            
+            // Create table with data
+            T firstEntity = data.get(0);
+            Field[] fields = firstEntity.getClass().getDeclaredFields();
+            
+            // Create table with proper column count
+            Table table = new Table(UnitValue.createPercentArray(fields.length)).useAllAvailableWidth();
+            
+            // Add headers
+            for (Field field : fields) {
+                Cell headerCell = new Cell()
+                    .add(new Paragraph(formatFieldName(field.getName()))
+                    .setBold()
+                    .setTextAlignment(TextAlignment.CENTER))
+                    .setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY);
+                table.addHeaderCell(headerCell);
+            }
+            
+            // Add data rows
+            for (T entity : data) {
+                for (Field field : fields) {
+                    field.setAccessible(true);
+                    try {
+                        Object value = field.get(entity);
+                        String cellValue = formatValueForPdf(value);
+                        Cell dataCell = new Cell()
+                            .add(new Paragraph(cellValue)
+                            .setFontSize(9))
+                            .setTextAlignment(TextAlignment.LEFT);
+                        table.addCell(dataCell);
+                    } catch (Exception e) {
+                        Cell errorCell = new Cell()
+                            .add(new Paragraph("N/A")
+                            .setFontSize(9))
+                            .setTextAlignment(TextAlignment.CENTER);
+                        table.addCell(errorCell);
+                    }
+                }
+            }
+            
+            document.add(table);
+            
+            // Add additional data if available
+            if (report.getAdditionalData() != null) {
+                document.add(new AreaBreak());
+                addAdditionalDataToPdf(document, report.getAdditionalData());
+            }
+            
+            // Add metadata if available
+            if (report.getMetadata() != null) {
+                document.add(new AreaBreak());
+                addMetadataToPdf(document, report.getMetadata());
+            }
+            
+            document.close();
+            return outputStream.toByteArray();
+            
+        } catch (Exception e) {
+            // log.error("Error al exportar a PDF", e);
+            throw new RuntimeException("Error generating PDF file", e);
+        }
+    }
+    
+    /**
+     * Formats a value for PDF display
+     */
+    private String formatValueForPdf(Object value) {
+        if (value == null) {
+            return "";
+        } else if (value instanceof LocalDate) {
+            return ((LocalDate) value).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        } else if (value instanceof LocalDateTime) {
+            return ((LocalDateTime) value).format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        } else if (value instanceof List) {
+            List<?> list = (List<?>) value;
+            if (list.isEmpty()) {
+                return "N/A";
+            }
+            return list.size() + " items";
+        } else {
+            String stringValue = value.toString();
+            // Truncate very long strings
+            if (stringValue.length() > 50) {
+                return stringValue.substring(0, 47) + "...";
+            }
+            return stringValue;
+        }
+    }
+    
+    /**
+     * Adds additional data section to PDF
+     */
+    private void addAdditionalDataToPdf(Document document, Object additionalData) {
+        try {
+            Paragraph additionalTitle = new Paragraph("Additional Statistics")
+                .setFontSize(14)
+                .setBold()
+                .setMarginTop(20);
+            document.add(additionalTitle);
+            
+            @SuppressWarnings("unchecked")
+            Map<String, Object> dataMap = objectMapper.convertValue(additionalData, Map.class);
+            
+            Table additionalTable = new Table(2).useAllAvailableWidth();
+            
+            // Headers
+            additionalTable.addHeaderCell(new Cell()
+                .add(new Paragraph("Metric").setBold())
+                .setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY));
+            additionalTable.addHeaderCell(new Cell()
+                .add(new Paragraph("Value").setBold())
+                .setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY));
+            
+            // Data
+            for (Map.Entry<String, Object> entry : dataMap.entrySet()) {
+                additionalTable.addCell(new Cell().add(new Paragraph(formatFieldName(entry.getKey()))));
+                additionalTable.addCell(new Cell().add(new Paragraph(formatValueForPdf(entry.getValue()))));
+            }
+            
+            document.add(additionalTable);
+            
+        } catch (Exception e) {
+            document.add(new Paragraph("Error loading additional data: " + e.getMessage())
+                .setFontSize(10)
+                .setItalic());
+        }
+    }
+    
+    /**
+     * Adds metadata section to PDF
+     */
+    private void addMetadataToPdf(Document document, Object metadata) {
+        try {
+            Paragraph metadataTitle = new Paragraph("Report Metadata")
+                .setFontSize(14)
+                .setBold()
+                .setMarginTop(20);
+            document.add(metadataTitle);
+            
+            @SuppressWarnings("unchecked")
+            Map<String, Object> metadataMap = objectMapper.convertValue(metadata, Map.class);
+            
+            Table metadataTable = new Table(2).useAllAvailableWidth();
+            
+            // Headers
+            metadataTable.addHeaderCell(new Cell()
+                .add(new Paragraph("Property").setBold())
+                .setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY));
+            metadataTable.addHeaderCell(new Cell()
+                .add(new Paragraph("Value").setBold())
+                .setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY));
+            
+            // Data
+            for (Map.Entry<String, Object> entry : metadataMap.entrySet()) {
+                metadataTable.addCell(new Cell().add(new Paragraph(formatFieldName(entry.getKey()))));
+                metadataTable.addCell(new Cell().add(new Paragraph(formatValueForPdf(entry.getValue()))));
+            }
+            
+            document.add(metadataTable);
+            
+        } catch (Exception e) {
+            document.add(new Paragraph("Error loading metadata: " + e.getMessage())
+                .setFontSize(10)
+                .setItalic());
+        }
     }
     
     /**
