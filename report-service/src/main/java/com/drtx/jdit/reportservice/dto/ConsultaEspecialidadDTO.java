@@ -1,14 +1,17 @@
 package com.drtx.jdit.reportservice.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
+/**
+ * DTO para consultas agrupadas por especialidad
+ */
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ConsultaEspecialidadDTO {
@@ -18,4 +21,7 @@ public class ConsultaEspecialidadDTO {
     private String nombrePaciente;
     private LocalDateTime fechaConsulta;
     private String estado;
+    private String notas;
+    private Double costoConsulta;
+    private String centroMedico;
 }

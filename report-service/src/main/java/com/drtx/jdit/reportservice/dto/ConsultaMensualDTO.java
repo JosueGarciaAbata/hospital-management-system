@@ -1,28 +1,36 @@
 package com.drtx.jdit.reportservice.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@Setter
+/**
+ * DTO para consultas agrupadas por mes
+ */
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ConsultaMensualDTO {
-    private int mes;
-    private int anio;
-    private int totalConsultas;
-    private List<ResumenEspecialidad> especialidades;
-
-    @Getter
-    @Setter
+    private Integer anio;
+    private Integer mes;
+    private Integer totalConsultas;
+    private Double ingresosTotales;
+    
+    @Builder.Default
+    private List<ResumenEspecialidad> especialidades = new ArrayList<>();
+    
+    @Data
+    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ResumenEspecialidad {
         private String nombreEspecialidad;
-        private int cantidadConsultas;
+        private Integer cantidadConsultas;
+        private Double ingresosGenerados;
     }
 }

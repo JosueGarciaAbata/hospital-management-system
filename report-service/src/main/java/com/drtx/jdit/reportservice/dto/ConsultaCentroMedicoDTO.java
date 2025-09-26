@@ -1,33 +1,40 @@
 package com.drtx.jdit.reportservice.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@Setter
+/**
+ * DTO para consultas agrupadas por centro médico
+ */
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ConsultaCentroMedicoDTO {
-    private Long id;
+    private Long idCentro;
     private String nombreCentro;
     private String direccion;
-    private List<ConsultaDetalle> consultas;
-
-    @Getter
-    @Setter
+    private Long totalConsultas;
+    
+    @Builder.Default
+    private List<ConsultaDetalle> consultas = new ArrayList<>();
+    
+    @Data
+    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ConsultaDetalle {
-        private Long consultaId;
+        private Long id;
         private String nombreMedico;
-        private String especialidad;
         private String nombrePaciente;
-        private LocalDateTime fechaConsulta;
+        private String especialidad;
+        private java.time.LocalDateTime fechaConsulta;
         private String estado;
+        private Double costoConsulta;
     }
 }
