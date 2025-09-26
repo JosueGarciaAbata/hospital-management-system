@@ -40,7 +40,7 @@ spring:
         - id: report-service
           uri: ${GATEWAY_URI_REPORTING_SERVICE}
           predicates:
-            - Path=/api/report/**
+            - Path=/api/reports/**
 
 eureka:
   client:
