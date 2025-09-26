@@ -1,11 +1,9 @@
 package com.drtx.jdit.reportservice.repo;
 
-import com.drtx.jdit.reportservice.dto.ConsultaEspecialidadDTO;
-import com.drtx.jdit.reportservice.dto.ConsultaMedicoDTO;
-import com.drtx.jdit.reportservice.dto.ConsultaCentroMedicoDTO;
-import com.drtx.jdit.reportservice.dto.ConsultaMensualDTO;
+import com.drtx.jdit.reportservice.dto.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Interfaz para acceder a los datos de consultas
@@ -13,30 +11,85 @@ import java.util.List;
 public interface ConsultaRepository {
     
     /**
-     * Obtiene todas las consultas médicas agrupadas por especialidad
+     * Obtiene las consultas médicas agrupadas por especialidad
      * @param token Token de autorización para acceder al servicio de consultas
+     * @param request Parámetros de filtrado para la consulta
      * @return Lista de consultas por especialidad
      */
-    List<ConsultaEspecialidadDTO> getConsultasPorEspecialidad(String token);
+    List<Map<String, Object>> getConsultasPorEspecialidad(String token, SpecialtyReportRequestDTO request);
     
     /**
-     * Obtiene todas las consultas médicas agrupadas por médico
+     * Obtiene las consultas médicas agrupadas por médico
      * @param token Token de autorización para acceder al servicio de consultas
+     * @param request Parámetros de filtrado para la consulta
      * @return Lista de consultas por médico
      */
-    List<ConsultaMedicoDTO> getConsultasPorMedico(String token);
+    List<Map<String, Object>> getConsultasPorMedico(String token, DoctorReportRequestDTO request);
     
     /**
-     * Obtiene todas las consultas médicas agrupadas por centro médico
+     * Obtiene las consultas médicas agrupadas por centro médico
      * @param token Token de autorización para acceder al servicio de consultas
+     * @param request Parámetros de filtrado para la consulta
      * @return Lista de consultas por centro médico
      */
-    List<ConsultaCentroMedicoDTO> getConsultasPorCentro(String token);
+    List<Map<String, Object>> getConsultasPorCentro(String token, MedicalCenterReportRequestDTO request);
     
     /**
-     * Obtiene todas las consultas médicas agrupadas por mes
+     * Obtiene las consultas médicas agrupadas por mes
      * @param token Token de autorización para acceder al servicio de consultas
+     * @param request Parámetros de filtrado para la consulta
      * @return Lista de consultas mensuales
      */
-    List<ConsultaMensualDTO> getConsultasMensuales(String token);
+    List<Map<String, Object>> getConsultasMensuales(String token, MonthlyReportRequestDTO request);
+    
+    // ========== Métodos de compatibilidad (deprecated) ==========
+    
+    /**
+     * @deprecated Usar getConsultasPorEspecialidad con request DTO
+     */
+    @Deprecated
+    default List<ConsultaEspecialidadDTO> getConsultasPorEspecialidad(String token) {
+        SpecialtyReportRequestDTO defaultRequest = SpecialtyReportRequestDTO.builder().build();
+        List<Map<String, Object>> rawData = getConsultasPorEspecialidad(token, defaultRequest);
+        return rawData.stream()
+            .map(data -> ConsultaEspecialidadDTO.builder()
+                .id((Long) data.get("id"))
+                .especialidad((String) data.get("especialidad"))
+                .nombreMedico((String) data.get("nombreMedico"))
+                .nombrePaciente((String) data.get("nombrePaciente"))
+                .fechaConsulta((java.time.LocalDateTime) data.get("fechaConsulta"))
+                .estado((String) data.get("estado"))
+                .build())
+            .collect(java.util.stream.Collectors.toList());
+    }
+    
+    /**
+     * @deprecated Usar getConsultasPorMedico con request DTO
+     */
+    @Deprecated
+    default List<ConsultaMedicoDTO> getConsultasPorMedico(String token) {
+        DoctorReportRequestDTO defaultRequest = DoctorReportRequestDTO.builder().build();
+        // Implementación básica - retorna lista vacía por compatibilidad
+        return java.util.Collections.emptyList();
+    }
+    
+    /**
+     * @deprecated Usar getConsultasPorCentro con request DTO
+     */
+    @Deprecated
+    default List<ConsultaCentroMedicoDTO> getConsultasPorCentro(String token) {
+        MedicalCenterReportRequestDTO defaultRequest = MedicalCenterReportRequestDTO.builder().build();
+        // Implementación básica - retorna lista vacía por compatibilidad
+        return java.util.Collections.emptyList();
+    }
+    
+    /**
+     * @deprecated Usar getConsultasMensuales con request DTO
+     */
+    @Deprecated
+    default List<ConsultaMensualDTO> getConsultasMensuales(String token) {
+        MonthlyReportRequestDTO defaultRequest = MonthlyReportRequestDTO.builder().build();
+        // Implementación básica - retorna lista vacía por compatibilidad
+        return java.util.Collections.emptyList();
+    }
 }
