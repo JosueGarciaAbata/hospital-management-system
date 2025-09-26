@@ -21,7 +21,4 @@ public class UpdateUserRequest {
     @Schema(description = "Género del usuario", example = "FEMALE")
     private String gender;
 
-    @Schema(description = "Identificador del centro asociado", example = "12")
-    @JsonProperty("center_id")
-    private Long centerId;
 }
