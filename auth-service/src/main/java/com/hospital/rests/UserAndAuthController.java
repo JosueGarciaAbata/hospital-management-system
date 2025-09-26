@@ -134,7 +134,7 @@ public class UserAndAuthController {
     }
 
     @RequireRole("ADMIN")
-    @PutMapping("/{id}")
+    @PutMapping("/users/{id}")
     @Operation(summary = "Actualizar un usuario existente")
     public ResponseEntity<UserResponse> updateUser(
             @Parameter(description = "Identificador del usuario a actualizar", example = "25")

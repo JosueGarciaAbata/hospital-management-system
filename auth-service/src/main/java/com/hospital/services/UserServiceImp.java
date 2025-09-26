@@ -175,10 +175,10 @@ public class UserServiceImp implements UserService {
         User user = repository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException( id));
 
-        user.setFirstName(request.getFirstName());
-        user.setLastName(request.getLastName());
-        user.setGender(GenderType.valueOf(request.getGender()));
-        user.setCenterId(request.getCenterId());
+        if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
+        if (request.getLastName() != null) user.setLastName(request.getLastName());
+        if (request.getGender() != null) user.setGender(GenderType.valueOf(request.getGender()));
+
         return repository.save(user);
     }
 
