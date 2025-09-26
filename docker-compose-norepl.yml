@@ -12,7 +12,7 @@ services:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "5050:${DB_PORT}"
+      - "${DB_PORT}:5432"
     volumes:
       - hospital_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -23,7 +23,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-auth-service
+    container_name: ${AUTH_NAME}
     env_file: ./.env
+    ports:
+      - "${AUTH_PORT}:${AUTH_PORT}"
     networks:
       - hospital_network
     depends_on:
@@ -34,7 +37,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-admin-service
+    container_name: ${ADMIN_SERVICE_NAME}
     env_file: ./.env
+    ports:
+      - "${ADMIN_SERVICE_PORT}:${ADMIN_SERVICE_PORT}"
     networks:
       - hospital_network
     depends_on:
