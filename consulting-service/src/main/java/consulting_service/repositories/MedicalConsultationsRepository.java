@@ -4,7 +4,6 @@ import consulting_service.entities.MedicalConsultation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -12,14 +11,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Repositorio para operaciones CRUD de consultas médicas con soporte para filtros avanzados
- */
-public interface MedicalConsultationsRepository extends JpaRepository<MedicalConsultation, Long>, 
-        JpaSpecificationExecutor<MedicalConsultation> {
+public interface MedicalConsultationsRepository extends JpaRepository<MedicalConsultation, Long> {
 
-    Page<MedicalConsultation> findByDoctorIdAndDeletedFalse(Long doctorId, Pageable pageable);
-
+    @Query("SELECT mc FROM MedicalConsultation mc " +
+            "WHERE mc.doctorId = :doctorId AND mc.deleted = false")
+    Page<MedicalConsultation> findByDoctorIdAndDeletedFalse(
+            @Param("doctorId") Long doctorId, Pageable pageable);
+    
     Optional<MedicalConsultation> findByIdAndDeletedFalse(Long id);
 
     boolean existsByCenterIdAndDeletedFalse(Long centerId);
@@ -51,7 +49,7 @@ public interface MedicalConsultationsRepository extends JpaRepository<MedicalCon
     
     /**
      * Búsqueda con múltiples centros médicos y médicos - DEPRECATED: Use Specifications instead
-     * @deprecated Use {@link #findAll(Specification, Pageable)} with MedicalConsultationSpecifications
+     * @deprecated Use {@link org.springframework.data.jpa.domain.Specification} with MedicalConsultationSpecifications
      */
     @Deprecated
     @Query("SELECT mc FROM MedicalConsultation mc WHERE " +
@@ -60,13 +58,13 @@ public interface MedicalConsultationsRepository extends JpaRepository<MedicalCon
        "(:deleted IS NULL OR mc.deleted = :deleted) AND " +
        "(:centerIds IS NULL OR mc.centerId IN :centerIds) AND " +
        "(:doctorIds IS NULL OR mc.doctorId IN :doctorIds)")
-Page<MedicalConsultation> findByAdvancedFiltersLegacy(
-        @Param("dateStart") LocalDateTime dateStart,
-        @Param("dateEnd") LocalDateTime dateEnd,
-        @Param("deleted") Boolean deleted,
-        @Param("centerIds") List<Long> centerIds,
-        @Param("doctorIds") List<Long> doctorIds,
-        Pageable pageable);
+    Page<MedicalConsultation> findByAdvancedFiltersLegacy(
+            @Param("dateStart") LocalDateTime dateStart,
+            @Param("dateEnd") LocalDateTime dateEnd,
+            @Param("deleted") Boolean deleted,
+            @Param("centerIds") List<Long> centerIds,
+            @Param("doctorIds") List<Long> doctorIds,
+            Pageable pageable);
 
     
     /**

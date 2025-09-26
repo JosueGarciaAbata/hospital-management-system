@@ -27,6 +27,7 @@ public interface DoctorMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "specialty", ignore = true) // se setea en el servicio
+    @Mapping(target = "deleted", ignore = true)
     Doctor toEntity(DoctorCreateRequest dto);
 
     /* ===== Update DTO -> (patch) Entity =====
@@ -38,5 +39,6 @@ public interface DoctorMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "specialty", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
     void updateEntityFromDto(DoctorUpdateRequest dto, @MappingTarget Doctor entity);
 }

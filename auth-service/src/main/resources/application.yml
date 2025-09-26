@@ -1,5 +1,6 @@
 server:
   port: ${AUTH_PORT:8090}
+  forward-headers-strategy: framework
 
 spring:
   application:
@@ -42,3 +43,9 @@ eureka:
     fetch-registry: true
   instance:
     prefer-ip-address: true
+    instance-id: ${spring.application.name}:${spring.cloud.client.ip-address}:${server.port}
+
+springdoc:
+  api-docs.path: /v3/api-docs
+  swagger-ui.path: /swagger-ui.html
+

@@ -20,7 +20,7 @@ public class DoctorReadAssembler {
         DoctorRead base = mapper.toRead(entity);
         if (entity.getUserId() == null) return base;
 
-        UserResponse user = authClient.getUserById(entity.getUserId());
+        UserResponse user = authClient.getUserById(entity.getUserId(), false);
         if (user == null) return base;
         return new DoctorRead(
                 base.id(),
@@ -33,7 +33,8 @@ public class DoctorReadAssembler {
                 user.lastName(),
                 user.gender(),
                 base.createdAt(),
-                base.updatedAt()
+                base.updatedAt(),
+                base.deleted()
         );
     }
 

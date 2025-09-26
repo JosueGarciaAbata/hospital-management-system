@@ -45,5 +45,9 @@ public class DoctorReadService {
     public Page<DoctorRead> findBySpecialty(Long specialtyId, Pageable pageable) {
         return assembler.toReadPage(repository.findAllBySpecialty_Id(specialtyId, pageable));
     }
+
+    public boolean existsByUserId(Long userId) {
+        return repository.existsByUserId(userId);
+    }
 }
 

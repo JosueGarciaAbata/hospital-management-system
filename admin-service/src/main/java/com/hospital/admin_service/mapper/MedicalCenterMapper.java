@@ -15,6 +15,7 @@ public interface MedicalCenterMapper {
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
     MedicalCenter toEntity(MedicalCenterCreateRequest dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
@@ -22,5 +23,6 @@ public interface MedicalCenterMapper {
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
     void updateEntityFromDto(MedicalCenterUpdateRequest dto, @MappingTarget MedicalCenter entity);
 }

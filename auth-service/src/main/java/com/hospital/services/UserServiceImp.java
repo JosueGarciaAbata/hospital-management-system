@@ -1,7 +1,9 @@
 package com.hospital.services;
 
 import com.hospital.dtos.CreateUserRequest;
+import com.hospital.dtos.MedicalCenterDto;
 import com.hospital.dtos.UpdateUserRequest;
+import com.hospital.dtos.UserResponse;
 import com.hospital.entities.Role;
 import com.hospital.entities.User;
 import com.hospital.enums.GenderType;
@@ -10,14 +12,21 @@ import com.hospital.feign.AdminServiceWrapper;
 import com.hospital.mappers.UserMapper;
 import com.hospital.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImp implements UserService {
@@ -27,6 +36,79 @@ public class UserServiceImp implements UserService {
     private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper mapper;
+
+    @Override
+    public Page<UserResponse> findAll(Pageable pageable, boolean includeDeleted) {
+        // Traer usuarios con paginación
+        Page<User> users;
+
+        if (includeDeleted) {
+            users = repository.findAllIncludingDeleted(pageable);
+        } else {
+            users = repository.findAll(pageable);
+        }
+
+        // Extraer los centerId únicos
+        List<Long> centerIds = users.stream()
+                .map(User::getCenterId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        // Llamar al admin-service en batch
+        List<MedicalCenterDto> centers = wrapper.getCentersById(centerIds, includeDeleted);
+
+        // Convertir a Map<Long, String> para acceso rápido
+        Map<Long, String> centersMap = centers.stream()
+                .collect(Collectors.toMap(MedicalCenterDto::getId, MedicalCenterDto::getName));
+
+        // Mapear usuarios a UserResponse con el nombre del centro
+        return users.map(user -> {
+            UserResponse dto = mapper.toUserResponse(user);
+            String centerName = centersMap.getOrDefault(user.getCenterId(), "Centro desconocido");
+            dto.setCenterName(centerName);
+            return dto;
+        });
+    }
+
+    @Override
+    public Page<UserResponse> findAllExludingUser(Long userId, Pageable pageable, boolean includeDeleted) {
+        // Traer usuarios con paginación
+        Page<User> users;
+
+        if (includeDeleted) {
+            users = repository.findAllIncludingDeletedExcludingUser(userId, pageable);
+        } else {
+            users = repository.findAllExcludingUser(userId, pageable);
+        }
+
+        // Extraer los centerId únicos
+        List<Long> centerIds = users.stream()
+                .map(User::getCenterId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        // Llamar al admin-service en batch
+        List<MedicalCenterDto> centers = wrapper.getCentersById(centerIds, includeDeleted);
+
+        // Convertir a Map<Long, String> para acceso rápido
+        Map<Long, String> centersMap = centers.stream()
+                .collect(Collectors.toMap(MedicalCenterDto::getId, MedicalCenterDto::getName));
+
+        // Mapear usuarios a UserResponse con el nombre del centro
+        return users.map(user -> {
+            UserResponse dto = mapper.toUserResponse(user);
+            String centerName = centersMap.getOrDefault(user.getCenterId(), "Centro desconocido");
+            dto.setCenterName(centerName);
+            return dto;
+        });
+    }
+
+    @Override
+    public List<User> findAllTesting() {
+        return this.repository.findAllTesting();
+    }
 
     @Override
     public User register(CreateUserRequest request) {
@@ -66,9 +148,14 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public User findUserById(Long id) {
-        return repository.findUserById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
+    public User findUserById(Long id, boolean enabled) {
+        if (enabled) {
+            return repository.findUserById(id)
+                    .orElseThrow(() -> new UserNotFoundException(id));
+        } else {
+            return repository.findUserByIdIncludingDisabled(id)
+                    .orElseThrow(() -> new UserNotFoundException(id));
+        }
     }
 
     @Override
@@ -93,10 +180,10 @@ public class UserServiceImp implements UserService {
         User user = repository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException( id));
 
-        user.setFirstName(request.getFirstName());
-        user.setLastName(request.getLastName());
-        user.setGender(GenderType.valueOf(request.getGender()));
-        user.setCenterId(request.getCenterId());
+        if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
+        if (request.getLastName() != null) user.setLastName(request.getLastName());
+        if (request.getGender() != null) user.setGender(GenderType.valueOf(request.getGender()));
+
         return repository.save(user);
     }
 
@@ -131,5 +218,26 @@ public class UserServiceImp implements UserService {
     @Override
     public User findByUsername(String username) {
         return this.findByUsername(username);
+    }
+
+    @Override
+    public void validateDoctorAssigned(Long userId) {
+
+        ResponseEntity<Void> response = this.wrapper.existsByUserId(userId);
+        log.info("Estado response {}", response.getStatusCode());
+
+        if (response.getStatusCode().is4xxClientError()) {
+            // Caso esperado: no existe doctor asociado, continuar sin error
+            return;
+        }
+
+        if (response.getStatusCode().is5xxServerError()) {
+            throw new ServiceUnavailableException("El servicio de administración no está disponible en este momento. Intente nuevamente más tarde.");
+        }
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+            throw new DoctorAssignedException("El usuario tiene un doctor asignado y no se puede eliminar.");
+        }
+
     }
 }
