@@ -39,7 +39,7 @@ public class SpecialtyController {
      *          READING
      * ========================= */
 
-    @RequireRole("ADMIN")
+    @RequireRole({"ADMIN","DOCTOR"})
     @GetMapping
     @Operation(summary = "Listar especialidades médicas paginadas",
             description = "Devuelve una lista paginada de especialidades médicas. Opcionalmente incluye registros eliminados lógicamente.")
@@ -50,7 +50,7 @@ public class SpecialtyController {
         return readService.findAllPage(includeDeleted, pageable).map(mapper::toRead);
     }
 
-    @RequireRole("ADMIN")
+    @RequireRole({"ADMIN","DOCTOR"})
     @GetMapping("/all")
     @Operation(summary = "Listar todas las especialidades médicas",
             description = "Devuelve la lista completa de especialidades médicas sin paginación. Opcionalmente incluye registros eliminados lógicamente.")
@@ -62,7 +62,7 @@ public class SpecialtyController {
                 .toList();
     }
 
-    @RequireRole("ADMIN")
+    @RequireRole({"ADMIN","DOCTOR"})
     @GetMapping("/{id}")
     @Operation(summary = "Obtener una especialidad médica por ID",
             description = "Devuelve una especialidad médica por su identificador. Opcionalmente incluye registros eliminados lógicamente.")

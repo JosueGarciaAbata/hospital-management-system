@@ -17,7 +17,7 @@ public interface UserService {
      List<User> findAllTesting();
      User register(CreateUserRequest request);
      User findUserByDni(String email);
-     User findUserById(Long id);
+     User findUserById(Long id, boolean enabled);
      User findUserByCenterId(Long centerId, boolean includeDisabled);
      boolean existsUserByCenterId(Long centerId, boolean includeDisabled);
      User update(Long id, UpdateUserRequest request);

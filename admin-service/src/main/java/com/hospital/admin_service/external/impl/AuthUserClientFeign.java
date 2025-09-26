@@ -34,16 +34,16 @@ public class AuthUserClientFeign implements IAuthUserClient {
     }
 
     @Override
-    public UserResponse getUserById(Long id) {
+    public UserResponse getUserById(Long id, boolean enabled) {
         try {
-            var resp = feign.getUserById(id);
+            var resp = feign.getUserById(id, enabled);
             if (!is2xx(resp) || resp.getBody() == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado");
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado con id: " + id);
             }
             return resp.getBody();
         } catch (FeignException.NotFound e) {
             // por si en tu versión aún lanza
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado", e);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado por id: " + id, e);
         }
     }
 
@@ -55,7 +55,7 @@ public class AuthUserClientFeign implements IAuthUserClient {
 
     @Override
     public boolean existsUserById(Long id) {
-        var resp = feign.getUserById(id);
+        var resp = feign.getUserById(id, true);
         return is2xx(resp) && resp.getBody() != null;
     }
 

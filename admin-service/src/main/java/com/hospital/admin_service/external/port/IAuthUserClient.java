@@ -5,7 +5,7 @@ import com.hospital.admin_service.external.dto.user.UserResponse;
 
 public interface IAuthUserClient {
     UserResponse register(CreateUserForDoctorRequest body);
-    UserResponse getUserById(Long id);
+    UserResponse getUserById(Long id, boolean enable);
     void deleteUser(Long id);
     void deleteUser(Long id, boolean hard);
     boolean existsUserById(Long id);

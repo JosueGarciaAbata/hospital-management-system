@@ -25,7 +25,10 @@ public interface AuthFeignClient {
     @GetMapping("/users/{id}")
     @CircuitBreaker(name = "authService")
     @Retry(name = "authService")
-    ResponseEntity<UserResponse> getUserById(@PathVariable("id") Long id);
+    ResponseEntity<UserResponse> getUserById(
+            @PathVariable("id") Long id,
+            @RequestParam(name = "enabled", defaultValue = "true") boolean enabled
+    );
 
     @GetMapping("/users/by-center/{id}")
     @CircuitBreaker(name = "authService") @Retry(name = "authService")
