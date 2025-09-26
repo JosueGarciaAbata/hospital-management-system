@@ -76,7 +76,7 @@ public class UserAndAuthController {
     public ResponseEntity<UserResponse> me(
             @Parameter(description = "Identificador del usuario autenticado", example = "101")
             @RequestHeader("X-User-Id") String userId) {
-        User user = service.findUserById(Long.parseLong(userId));
+        User user = service.findUserById(Long.parseLong(userId), true);
         return ResponseEntity.ok(mapper.toUserResponse(user));
     }
 
@@ -84,8 +84,11 @@ public class UserAndAuthController {
     @Operation(summary = "Obtener un usuario por ID")
     public ResponseEntity<UserResponse> getUserById(
             @Parameter(description = "Identificador del usuario", example = "25")
-            @PathVariable Long id) {
-        User user = service.findUserById(id);
+            @PathVariable Long id,
+            @Parameter(description = "Filtrar por usuarios habilitados (por defecto true)", example = "true")
+            @RequestParam(defaultValue = "true") boolean enabled) {
+
+        User user = service.findUserById(id, enabled);
         return ResponseEntity.ok(mapper.toUserResponse(user));
     }
 

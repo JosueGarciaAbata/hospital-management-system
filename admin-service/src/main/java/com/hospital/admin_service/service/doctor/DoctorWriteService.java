@@ -136,7 +136,7 @@ public class DoctorWriteService {
         }
 
         try {
-            //authUserClient.deleteUser(current.getUserId());
+            authUserClient.deleteUser(current.getUserId());
             repository.delete(current);
         } catch (ResponseStatusException rse) {
             throw rse;

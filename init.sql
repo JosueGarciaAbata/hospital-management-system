@@ -163,8 +163,11 @@ INSERT INTO roles (name) VALUES ('ADMIN');
 INSERT INTO roles (name) VALUES ('DOCTOR');
 
 -- Insert default medical center (needed for FK)
-INSERT INTO medical_centers (name, city, address)
-VALUES ('Central Hospital', 'Quito', 'Av. Principal 123');
+INSERT INTO medical_centers (name, city, address) VALUES
+  ('Hospital Metropolitano', 'Quito', 'Av. Principal 123'),
+  ('Hospital Luis Vernaza', 'Guayaquil', 'Loja 700 y Escobedo'),
+  ('Hospital General Docente Ambato', 'Ambato', 'Av. Luis Pasteur y Av. Unidad Nacional');
+
 
 -- Insert default admin user (password: admin123)
 INSERT INTO users (dni, email, password, gender, first_name, last_name, enabled, center_id)
@@ -185,25 +188,54 @@ INSERT INTO users_roles (user_id, role_id) VALUES (1, 1);
 -- Insertar usuarios doctores (dni válidos EC)
 INSERT INTO users (dni, email, password, gender, first_name, last_name, enabled, center_id) VALUES
     ('1849488182','doctor@hotmail.com',crypt('doctor123',gen_salt('bf')),'MALE','Juan','Perez',TRUE,1),
-('1552501056','martin.gomez@hospital.com',crypt('doctor123',gen_salt('bf')),'MALE','Martin','Gomez',TRUE,1),
-('0820194900','valeria.silva@hospital.com',crypt('doctor123',gen_salt('bf')),'FEMALE','Valeria','Silva',TRUE,1),
-('2335515249','ricardo.fuentes@hospital.com',crypt('doctor123',gen_salt('bf')),'MALE','Ricardo','Fuentes',TRUE,1),
-('0227907425','laura.morales@hospital.com',crypt('doctor123',gen_salt('bf')),'FEMALE','Laura','Morales',TRUE,1),
-('1509184485','javier.ortiz@hospital.com',crypt('doctor123',gen_salt('bf')),'MALE','Javier','Ortiz',FALSE,1),
-('2002638654','carolina.mendez@hospital.com',crypt('doctor123',gen_salt('bf')),'FEMALE','Carolina','Mendez',FALSE,1),
-('1617335060','sergio.ruiz@hospital.com',crypt('doctor123',gen_salt('bf')),'MALE','Sergio','Ruiz',FALSE,1),
-('1209534963','andrea.castro@hospital.com',crypt('doctor123',gen_salt('bf')),'FEMALE','Andrea','Castro',FALSE,1);
+    ('1552501056','martin.gomez@hospital.com',crypt('doctor123',gen_salt('bf')),'MALE','Martin','Gomez',TRUE,1),
+    ('0820194900','valeria.silva@hospital.com',crypt('doctor123',gen_salt('bf')),'FEMALE','Valeria','Silva',TRUE,1),
+    ('2335515249','ricardo.fuentes@hospital.com',crypt('doctor123',gen_salt('bf')),'MALE','Ricardo','Fuentes',TRUE,1),
+    ('0227907425','laura.morales@hospital.com',crypt('doctor123',gen_salt('bf')),'FEMALE','Laura','Morales',TRUE,1),
+    ('1509184485','javier.ortiz@hospital.com',crypt('doctor123',gen_salt('bf')),'MALE','Javier','Ortiz',FALSE,1),
+    ('2002638654','carolina.mendez@hospital.com',crypt('doctor123',gen_salt('bf')),'FEMALE','Carolina','Mendez',FALSE,1),
+    ('1617335060','sergio.ruiz@hospital.com',crypt('doctor123',gen_salt('bf')),'MALE','Sergio','Ruiz',FALSE,1),
+    ('1209534963','andrea.castro@hospital.com',crypt('doctor123',gen_salt('bf')),'FEMALE','Andrea','Castro',FALSE,1);
 
 -- Asignar rol DOCTOR (id=2) a todos estos usuarios
 INSERT INTO users_roles (user_id, role_id) SELECT id, 2 FROM users WHERE dni IN ('1849488182','1552501056','0820194900','2335515249','0227907425','1509184485','2002638654','1617335060','1209534963');
 
 -- Insert default specialty
-INSERT INTO specialties (name, description)
-VALUES ('Medicina General', 'Especialidad general para atención primaria');
+INSERT INTO specialties (name, description) VALUES
+    ('Medicina General', 'Especialidad general para atención primaria'),
+    ('Pediatría', 'Atención médica a niños y adolescentes'),
+    ('Cardiología', 'Diagnóstico y tratamiento de enfermedades del corazón y sistema circulatorio'),
+    ('Dermatología', 'Diagnóstico y tratamiento de enfermedades de la piel, cabello y uñas'),
+    ('Ginecología', 'Atención de la salud reproductiva femenina'),
+    ('Neurología', 'Diagnóstico y tratamiento de trastornos del sistema nervioso'),
+    ('Psiquiatría', 'Atención de trastornos mentales y emocionales'),
+    ('Oftalmología', 'Prevención y tratamiento de enfermedades de los ojos'),
+    ('Ortopedia', 'Tratamiento de lesiones y enfermedades del sistema musculoesquelético'),
+    ('Oncología', 'Prevención, diagnóstico y tratamiento del cáncer');
+
 
 -- Insert doctor profile linking user to specialty (suponiendo specialty_id = 1)
-INSERT INTO doctors (user_id, specialty_id)
-VALUES (2, 1);
+INSERT INTO doctors (user_id, specialty_id, deleted)
+SELECT u.id, s.id, NOT u.enabled
+FROM users u
+         JOIN (
+    VALUES
+        ('1849488182','Medicina General'),
+        ('1552501056','Pediatría'),
+        ('0820194900','Cardiología'),
+        ('2335515249','Dermatología'),
+        ('0227907425','Ginecología'),
+        ('1509184485','Neurología'),
+        ('2002638654','Psiquiatría'),
+        ('1617335060','Oftalmología'),
+        ('1209534963','Ortopedia')
+) AS m(dni, spec_name) ON m.dni = u.dni
+         JOIN specialties s
+              ON s.name = m.spec_name
+                  AND s.deleted = FALSE                -- no vincular a especialidad “borrada”
+WHERE NOT EXISTS (SELECT 1 FROM doctors d WHERE d.user_id = u.id);
+
+
 
 -- =========================
 -- Insert 5 patients

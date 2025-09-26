@@ -148,9 +148,14 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public User findUserById(Long id) {
-        return repository.findUserById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
+    public User findUserById(Long id, boolean enabled) {
+        if (enabled) {
+            return repository.findUserById(id)
+                    .orElseThrow(() -> new UserNotFoundException(id));
+        } else {
+            return repository.findUserByIdIncludingDisabled(id)
+                    .orElseThrow(() -> new UserNotFoundException(id));
+        }
     }
 
     @Override

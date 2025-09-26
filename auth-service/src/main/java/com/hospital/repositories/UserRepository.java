@@ -48,6 +48,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @EntityGraph(attributePaths = {"roles"})
     Optional<User> findUserById(Long id);
 
+    @Query(value = "SELECT * FROM users u WHERE u.id = :id", nativeQuery = true)
+    Optional<User> findUserByIdIncludingDisabled(@Param("id") Long id);
+
     // Usuarios activos (implícito gracias a @SoftDelete)
     Optional<User> findFirstActiveByCenterId(Long centerId);
     boolean existsActiveByCenterId(Long centerId);
