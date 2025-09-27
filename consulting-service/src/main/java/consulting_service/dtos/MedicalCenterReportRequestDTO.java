@@ -42,10 +42,7 @@ public class MedicalCenterReportRequestDTO {
      */
     private List<Long> medicos;
     
-    /**
-     * Estado de las consultas (ACTIVA, CANCELADA)
-     */
-    private String estado;
+    // Campo estado eliminado
     
     /**
      * Campo por el cual ordenar

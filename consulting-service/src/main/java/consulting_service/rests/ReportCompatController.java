@@ -63,13 +63,12 @@ public class ReportCompatController {
             // Convertir fechas
             LocalDateTime fechaInicioDateTime = request.getFechaInicio() != null ? request.getFechaInicio().atStartOfDay() : null;
             LocalDateTime fechaFinDateTime = request.getFechaFin() != null ? request.getFechaFin().atTime(LocalTime.MAX) : null;
-            Boolean estadoBoolean = convertirEstado(request.getEstado());
-
+            
             // Obtener consultas usando Specifications (soluciona problema PostgreSQL)
             Specification<MedicalConsultation> spec = MedicalConsultationSpecifications.withFilters(
                     fechaInicioDateTime,
                     fechaFinDateTime,
-                    estadoBoolean,
+                    null, // estado es null para considerar todos los estados
                     request.getCentrosMedicos(),
                     request.getMedicos()
             );
@@ -251,13 +250,12 @@ public class ReportCompatController {
             // Convertir fechas
             LocalDateTime fechaInicioDateTime = request.getFechaInicio() != null ? request.getFechaInicio().atStartOfDay() : null;
             LocalDateTime fechaFinDateTime = request.getFechaFin() != null ? request.getFechaFin().atTime(LocalTime.MAX) : null;
-            Boolean estadoBoolean = convertirEstado(request.getEstado());
 
             // Obtener todas las consultas para agrupar por médico usando Specifications
             Specification<MedicalConsultation> spec = MedicalConsultationSpecifications.withFilters(
                     fechaInicioDateTime,
                     fechaFinDateTime,
-                    estadoBoolean,
+                    null, // estado es null para considerar todos los estados
                     request.getCentrosMedicos(),
                     request.getMedicos()
             );
@@ -349,13 +347,12 @@ public class ReportCompatController {
             // Convertir fechas
             LocalDateTime fechaInicioDateTime = request.getFechaInicio() != null ? request.getFechaInicio().atStartOfDay() : null;
             LocalDateTime fechaFinDateTime = request.getFechaFin() != null ? request.getFechaFin().atTime(LocalTime.MAX) : null;
-            Boolean estadoBoolean = convertirEstado(request.getEstado());
 
             // Obtener todas las consultas para agrupar por centro usando Specifications
             Specification<MedicalConsultation> spec = MedicalConsultationSpecifications.withFilters(
                     fechaInicioDateTime,
                     fechaFinDateTime,
-                    estadoBoolean,
+                    null, // estado es null para considerar todos los estados
                     request.getCentrosMedicos(),
                     request.getMedicos()
             );
@@ -464,13 +461,12 @@ public class ReportCompatController {
             // Convertir fechas
             LocalDateTime fechaInicioDateTime = request.getFechaInicio() != null ? request.getFechaInicio().atStartOfDay() : null;
             LocalDateTime fechaFinDateTime = request.getFechaFin() != null ? request.getFechaFin().atTime(LocalTime.MAX) : null;
-            Boolean estadoBoolean = convertirEstado(request.getEstado());
 
             // Obtener todas las consultas para agrupar por mes usando Specifications
             Specification<MedicalConsultation> spec = MedicalConsultationSpecifications.withFilters(
                     fechaInicioDateTime,
                     fechaFinDateTime,
-                    estadoBoolean,
+                    null, // estado es null para considerar todos los estados
                     request.getCentrosMedicos(),
                     request.getMedicos()
             );
@@ -564,18 +560,5 @@ public class ReportCompatController {
         }
     }
 
-    /**
-     * Convierte un string de estado a un booleano para filtrado
-     */
-    private Boolean convertirEstado(String estado) {
-        if (estado == null || estado.isEmpty()) {
-            return null;
-        }
-
-        return switch (estado.toUpperCase()) {
-            case "CANCELADA" -> true;
-            case "ACTIVA" -> false;
-            default -> null;
-        };
-    }
+    // El método convertirEstado ha sido eliminado porque ya no se requiere filtrado por estado
 }
