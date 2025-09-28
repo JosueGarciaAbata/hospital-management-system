@@ -148,6 +148,30 @@ public class UserAndAuthController {
     }
 
     @RequireRole("ADMIN")
+    @DeleteMapping("/c/{id}")
+    @Operation(summary = "Eliminar o deshabilitar un usuario",
+            description = "Si `hard=true`, elimina físicamente el usuario; si no, lo deshabilita (borrado lógico).")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Operación realizada correctamente")
+    })
+    public ResponseEntity<Void> delete(
+            @Parameter(description = "Identificador del usuario", example = "25")
+            @PathVariable Long id,
+            @Parameter(description = "Eliminación física si es true; deshabilitar si es false", example = "false")
+            @RequestParam(name = "hard", defaultValue = "false") boolean hard) {
+        // Chequeando si el usuario es un doctor. Si es asi, no se puede eliminar
+        this.service.validateDoctorAssigned(id);
+
+        if (hard) {
+            this.service.hardDeleteUser(id);
+        } else {
+            this.service.disableUser(id);
+        }
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @RequireRole("ADMIN")
     @DeleteMapping("/{id}")
     @Operation(summary = "Eliminar o deshabilitar un usuario",
             description = "Si `hard=true`, elimina físicamente el usuario; si no, lo deshabilita (borrado lógico).")
@@ -159,8 +183,6 @@ public class UserAndAuthController {
             @PathVariable Long id,
             @Parameter(description = "Eliminación física si es true; deshabilitar si es false", example = "false")
             @RequestParam(name = "hard", defaultValue = "false") boolean hard) {
-        // Chequeando si el usuario es un doctor. Si es asi, no se puede eliminar
-        this.service.validateDoctorAssigned(id);
 
         if (hard) {
             this.service.hardDeleteUser(id);

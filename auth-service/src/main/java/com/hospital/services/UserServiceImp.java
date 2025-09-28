@@ -238,6 +238,5 @@ public class UserServiceImp implements UserService {
         if (response.getStatusCode().is2xxSuccessful()) {
             throw new DoctorAssignedException("El usuario tiene un doctor asignado y no se puede eliminar.");
         }
-
     }
 }
