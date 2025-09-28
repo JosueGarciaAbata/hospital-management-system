@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * Feign client to communicate with the consulting service
  */
-@FeignClient(name = "consulting-service", configuration = {com.drtx.jdit.reportservice.config.FeignConfig.class})
+@FeignClient(name = "consulting-service", contextId = "consultingServiceClientReport", configuration = {com.drtx.jdit.reportservice.config.FeignConfig.class})
 public interface ConsultingServiceClient {
 
     String DEFAULT_ROLE = "ADMIN";
@@ -19,7 +19,7 @@ public interface ConsultingServiceClient {
      * Gets consultations by specialty with filtering parameters via POST
      */
     @PostMapping("/api/consulting/reports/by-specialty")
-    List<Map<String, Object>> getConsultationsBySpecialty(
+    SpecialtyReportResponseDTO getConsultationsBySpecialty(
             @RequestHeader("Authorization") String token,
             @RequestHeader("X-Roles") String roles,
             @RequestBody SpecialtyReportRequestDTO request
@@ -29,7 +29,7 @@ public interface ConsultingServiceClient {
      * Gets consultations by doctor with filtering parameters via POST
      */
     @PostMapping("/api/consulting/reports/by-doctor")
-    List<Map<String, Object>> getConsultationsByDoctor(
+    DoctorReportResponseDTO getConsultationsByDoctor(
             @RequestHeader("Authorization") String token,
             @RequestHeader("X-Roles") String roles,
             @RequestBody DoctorReportRequestDTO request
@@ -39,7 +39,7 @@ public interface ConsultingServiceClient {
      * Gets consultations by medical center with filtering parameters via POST
      */
     @PostMapping("/api/consulting/reports/by-center")
-    List<Map<String, Object>> getConsultationsByCenter(
+    MedicalCenterReportResponseDTO getConsultationsByCenter(
             @RequestHeader("Authorization") String token,
             @RequestHeader("X-Roles") String roles,
             @RequestBody MedicalCenterReportRequestDTO request
@@ -49,7 +49,7 @@ public interface ConsultingServiceClient {
      * Gets monthly consultations with filtering parameters via POST
      */
     @PostMapping("/api/consulting/reports/by-month")
-    List<Map<String, Object>> getConsultationsByMonth(
+    MonthlyReportResponseDTO getConsultationsByMonth(
             @RequestHeader("Authorization") String token,
             @RequestHeader("X-Roles") String roles,
             @RequestBody MonthlyReportRequestDTO request

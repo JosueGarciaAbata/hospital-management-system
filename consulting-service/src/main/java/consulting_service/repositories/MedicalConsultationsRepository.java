@@ -164,4 +164,37 @@ public interface MedicalConsultationsRepository extends JpaRepository<MedicalCon
             @Param("deleted") Boolean deleted,
             @Param("centerIds") List<Long> centerIds,
             @Param("doctorIds") List<Long> doctorIds);
+
+
+    /**
+     * Búsqueda con filtro por especialidades via JOIN con doctors (consulta nativa)
+     */
+    /**
+     * Búsqueda con filtro por especialidades via JOIN con doctors (consulta nativa mejorada)
+     */
+    @Query(value = "SELECT mc.* FROM medical_consultation mc " +
+            "JOIN doctor d ON mc.doctor_id = d.id " +
+            "WHERE (COALESCE(:specialtyIds, NULL) IS NULL OR d.specialty_id IN (:specialtyIds)) " +
+            "AND (:dateStart IS NULL OR mc.date >= :dateStart) " +
+            "AND (:dateEnd IS NULL OR mc.date <= :dateEnd) " +
+            "AND mc.deleted = false " +  // Siempre filtrar por deleted = false
+            "AND (COALESCE(:centerIds, NULL) IS NULL OR mc.center_id IN (:centerIds)) " +
+            "AND (COALESCE(:doctorIds, NULL) IS NULL OR mc.doctor_id IN (:doctorIds)) " +
+            "ORDER BY mc.date DESC",
+            countQuery = "SELECT COUNT(mc.id) FROM medical_consultation mc " +
+                    "JOIN doctor d ON mc.doctor_id = d.id " +
+                    "WHERE (COALESCE(:specialtyIds, NULL) IS NULL OR d.specialty_id IN (:specialtyIds)) " +
+                    "AND (:dateStart IS NULL OR mc.date >= :dateStart) " +
+                    "AND (:dateEnd IS NULL OR mc.date <= :dateEnd) " +
+                    "AND mc.deleted = false " +
+                    "AND (COALESCE(:centerIds, NULL) IS NULL OR mc.center_id IN (:centerIds)) " +
+                    "AND (COALESCE(:doctorIds, NULL) IS NULL OR mc.doctor_id IN (:doctorIds))",
+            nativeQuery = true)
+    Page<MedicalConsultation> findBySpecialtiesAndFilters(
+            @Param("specialtyIds") List<Long> specialtyIds,
+            @Param("dateStart") LocalDateTime dateStart,
+            @Param("dateEnd") LocalDateTime dateEnd,
+            @Param("centerIds") List<Long> centerIds,
+            @Param("doctorIds") List<Long> doctorIds,
+            Pageable pageable);
 }

@@ -1,0 +1,36 @@
+package com.drtx.jdit.reportservice.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.Map;
+
+/**
+ * DTO para KPIs en los reportes
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ReportKpisDTO {
+
+    private Long distinctSpecialties;
+    private Long doctorsInvolved;
+    private Long medicalCentersInvolved;
+    private Long uniquePatientsTotal;
+    private Double avgConsultationsPerDoctor;
+    private DataQualityDTO dataQuality;
+    private Map<String, Object> additionalMetrics;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DataQualityDTO {
+        private Long consultationsWithDiagnosis;
+        private Long consultationsWithTreatment;
+        private Double dataCompletenessPercentage;
+    }
+}

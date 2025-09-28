@@ -15,7 +15,8 @@ public class ReportFilterRequestDTO {
     private List<Long> medicalCenterIds;
     private int page = 0;
     private int size = 10;
-    private String sortBy = "consultationDate";
+    // Usar el nombre real del campo en la entidad MedicalConsultation
+    private String sortBy = "date";
     private String sortDirection = "DESC";
     private boolean includeAdditionalData = false;
 

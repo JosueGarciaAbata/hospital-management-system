@@ -8,21 +8,22 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * DTO for consultations grouped by specialty
+ * DTO para detalles de consultas en los reportes
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SpecialtyConsultationDTO {
-    private Long id;
-    private String specialty;
-    private String doctorName;
+public class DetailedConsultationDTO {
+
+    private Long consultationId;
     private String patientName;
+    private String doctorName;
+    private String specialty;
+    private String centerName;
     private LocalDateTime consultationDate;
     private String status;
+    private String diagnosis;
+    private String treatment;
     private String notes;
-    private Double consultationCost;
-    private String medicalCenter;
-    private Long totalConsultations; // Nuevo campo para almacenar el total de consultas por especialidad
 }
