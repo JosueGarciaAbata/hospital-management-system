@@ -1,4 +1,4 @@
-package consulting_service.dtos.response.reports;
+package com.drtx.jdit.reportservice.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * DTO for specialty report responses
+ * DTO para respuestas de reportes por especialidad
  */
 @Data
 @Builder
@@ -37,8 +37,8 @@ public class SpecialtyReportResponseDTO {
         private LocalDate dateRangeEnd;
         private LocalDateTime reportGeneratedAt;
         private Boolean hasDateFilter;
-        private String reportType;
         private Boolean hasData;
+        private String reportType;
     }
 
     @Data

@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import com.drtx.jdit.reportservice.dto.DoctorConsultationDTO;
 
 /**
  * Utility for exporting reports to different formats
@@ -176,44 +177,44 @@ public class ReportExportUtil {
      * @return byte array with PDF content
      */
     public <T> byte[] exportToPdf(ReportResponseDTO<T> report, String reportTitle) {
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            
-            PdfWriter writer = new PdfWriter(outputStream);
-            PdfDocument pdfDoc = new PdfDocument(writer);
-            Document document = new Document(pdfDoc);
-            
-            // === HEADER SECTION ===
-            addProfessionalHeader(document, reportTitle);
-            
-            // === EXECUTIVE SUMMARY ===
-            addExecutiveSummary(document, report);
-            
-            // === DATA TABLE ===
-            addDataTable(document, report);
-            
-            // === ANALYTICS SECTION ===
-            if (report.getAdditionalData() != null) {
-                document.add(new AreaBreak());
-                addAnalyticsSection(document, report.getAdditionalData());
-            }
-            
-            // === FOOTER ===
-            addProfessionalFooter(document, report);
-            
-            document.close();
-            return outputStream.toByteArray();
-            
-        } catch (Exception e) {
-            throw new RuntimeException("Error generating professional PDF report", e);
+    try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+        
+        PdfWriter writer = new PdfWriter(outputStream);
+        PdfDocument pdfDoc = new PdfDocument(writer);
+        Document document = new Document(pdfDoc);
+        
+        // === HEADER SECTION ===
+        addProfessionalHeader(document, reportTitle);
+        
+        // === EXECUTIVE SUMMARY ===
+        addExecutiveSummary(document, report);
+        
+        // === DATA TABLE ===
+        addDataTable(document, report);
+        
+        // === ANALYTICS SECTION ===
+        if (report.getAdditionalData() != null) {
+            document.add(new AreaBreak());
+            addAnalyticsSection(document, report.getAdditionalData());
         }
+        
+        // === FOOTER ===
+        addProfessionalFooter(document, report);
+        
+        document.close();
+        return outputStream.toByteArray();
+        
+    } catch (Exception e) {
+        throw new RuntimeException("Error generating professional PDF report", e);
     }
+}
     
     /**
      * Adds professional header with company branding
      */
     private void addProfessionalHeader(Document document, String reportTitle) {
         // Company header with logo placeholder
-        Paragraph companyHeader = new Paragraph("HOSPITAL MANAGEMENT SYSTEM")
+        Paragraph companyHeader = new Paragraph("SISTEMA DE GESTIÓN HOSPITALARIA")
             .setTextAlignment(TextAlignment.CENTER)
             .setFontSize(14)
             .setBold()
@@ -222,7 +223,7 @@ public class ReportExportUtil {
         document.add(companyHeader);
         
         // Subtitle
-        Paragraph subtitle = new Paragraph("Medical Analytics & Reporting Division")
+        Paragraph subtitle = new Paragraph("División de Análisis y Reportes Médicos")
             .setTextAlignment(TextAlignment.CENTER)
             .setFontSize(10)
             .setItalic()
@@ -241,7 +242,7 @@ public class ReportExportUtil {
         
         // Date and time info
         LocalDateTime now = LocalDateTime.now();
-        Paragraph dateInfo = new Paragraph("Generated on: " + now.format(DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy 'at' HH:mm:ss")))
+        Paragraph dateInfo = new Paragraph("Fecha de emisión: " + now.format(DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy 'at' HH:mm:ss")))
             .setTextAlignment(TextAlignment.CENTER)
             .setFontSize(10)
             .setFontColor(com.itextpdf.kernel.colors.ColorConstants.DARK_GRAY)
@@ -262,44 +263,88 @@ public class ReportExportUtil {
      * Adds executive summary section
      */
     private void addExecutiveSummary(Document document, ReportResponseDTO<?> report) {
-        Paragraph summaryTitle = new Paragraph("EXECUTIVE SUMMARY")
-            .setFontSize(14)
-            .setBold()
-            .setFontColor(com.itextpdf.kernel.colors.ColorConstants.BLACK)
-            .setMarginTop(15)
-            .setMarginBottom(10);
+        // Título del resumen
+        Paragraph summaryTitle = new Paragraph("RESUMEN")
+                .setFontSize(14)
+                .setBold() // solo el título en negrilla
+                .setMarginTop(15)
+                .setMarginBottom(10)
+                .setTextAlignment(TextAlignment.LEFT);
         document.add(summaryTitle);
-        
-        // Summary table with key metrics
-        com.itextpdf.layout.element.Table summaryTable = new com.itextpdf.layout.element.Table(2)
-            .useAllAvailableWidth()
-            .setMarginBottom(20);
-        
-        // Header styling
+
+        // Tabla de resumen con dos columnas (3:2)
+        com.itextpdf.layout.element.Table summaryTable = new com.itextpdf.layout.element.Table(new float[]{3, 2})
+                .useAllAvailableWidth()
+                .setMarginBottom(20);
+
+        // Cabecera
         com.itextpdf.layout.element.Cell headerCell1 = new com.itextpdf.layout.element.Cell()
-            .add(new Paragraph("METRIC").setBold().setFontSize(10))
-            .setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY)
-            .setTextAlignment(TextAlignment.CENTER)
-            .setPadding(8);
-        
+                .add(new Paragraph("MÉTRICA").setBold().setFontSize(10))
+                .setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY)
+                .setTextAlignment(TextAlignment.CENTER)
+                .setPadding(6);
+
         com.itextpdf.layout.element.Cell headerCell2 = new com.itextpdf.layout.element.Cell()
-            .add(new Paragraph("VALUE").setBold().setFontSize(10))
-            .setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY)
-            .setTextAlignment(TextAlignment.CENTER)
-            .setPadding(8);
-        
+                .add(new Paragraph("VALOR").setBold().setFontSize(10))
+                .setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY)
+                .setTextAlignment(TextAlignment.CENTER)
+                .setPadding(6);
+
         summaryTable.addHeaderCell(headerCell1);
         summaryTable.addHeaderCell(headerCell2);
-        
-        // Data rows
-        addSummaryRow(summaryTable, "Total Records", String.valueOf(report.getTotalElements()));
-        addSummaryRow(summaryTable, "Report Status", report.getMessage() != null ? "Completed Successfully" : "Ready");
-        addSummaryRow(summaryTable, "Data Quality", "Validated");
-        addSummaryRow(summaryTable, "Report Period", "Current");
-        
+
+        // Filas de datos directamente aquí, sin helper
+        summaryTable.addCell(new com.itextpdf.layout.element.Cell()
+                .add(new Paragraph("Total de Registros").setFontSize(10))
+                .setTextAlignment(TextAlignment.LEFT)
+                .setPadding(6)
+        );
+        summaryTable.addCell(new com.itextpdf.layout.element.Cell()
+                .add(new Paragraph(String.valueOf(report.getTotalElements())).setFontSize(10))
+                .setTextAlignment(TextAlignment.CENTER)
+                .setPadding(6)
+        );
+
+        summaryTable.addCell(new com.itextpdf.layout.element.Cell()
+                .add(new Paragraph("Estado del Reporte").setFontSize(10))
+                .setTextAlignment(TextAlignment.LEFT)
+                .setPadding(6)
+        );
+        summaryTable.addCell(new com.itextpdf.layout.element.Cell()
+                .add(new Paragraph(report.getMessage() != null ? "Completado Exitosamente" : "Listo").setFontSize(10))
+                .setTextAlignment(TextAlignment.CENTER)
+                .setPadding(6)
+        );
+
+        summaryTable.addCell(new com.itextpdf.layout.element.Cell()
+                .add(new Paragraph("Calidad de Datos").setFontSize(10))
+                .setTextAlignment(TextAlignment.LEFT)
+                .setPadding(6)
+        );
+        summaryTable.addCell(new com.itextpdf.layout.element.Cell()
+                .add(new Paragraph("Validada").setFontSize(10))
+                .setTextAlignment(TextAlignment.CENTER)
+                .setPadding(6)
+        );
+
+        summaryTable.addCell(new com.itextpdf.layout.element.Cell()
+                .add(new Paragraph("Período del Reporte").setFontSize(10))
+                .setTextAlignment(TextAlignment.LEFT)
+                .setPadding(6)
+        );
+        summaryTable.addCell(new com.itextpdf.layout.element.Cell()
+                .add(new Paragraph("Actual").setFontSize(10))
+                .setTextAlignment(TextAlignment.CENTER)
+                .setPadding(6)
+        );
+
         document.add(summaryTable);
     }
-    
+    /**
+     * Método helper para agregar fila de datos con estilo ligero
+     */
+
+
     /**
      * Adds a row to the summary table
      */
@@ -322,84 +367,144 @@ public class ReportExportUtil {
     /**
      * Adds the main data table with professional formatting
      */
+
+
     private <T> void addDataTable(Document document, ReportResponseDTO<T> report) {
         List<T> data = report.getData();
         if (data == null || data.isEmpty()) {
-            Paragraph noData = new Paragraph("No data available for the specified criteria.")
-                .setTextAlignment(TextAlignment.CENTER)
-                .setFontSize(12)
-                .setItalic()
-                .setMarginTop(20);
+            Paragraph noData = new Paragraph("No hay datos disponibles para los criterios especificados.")
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setFontSize(12)
+                    .setItalic()
+                    .setMarginTop(20);
             document.add(noData);
             return;
         }
-        
-        // Section title
-        Paragraph dataTitle = new Paragraph("DETAILED DATA ANALYSIS")
-            .setFontSize(14)
-            .setBold()
-            .setFontColor(com.itextpdf.kernel.colors.ColorConstants.BLACK)
-            .setMarginTop(20)
-            .setMarginBottom(15);
+
+        // Section title in Spanish
+        Paragraph dataTitle = new Paragraph("ANÁLISIS DETALLADO DE DATOS")
+                .setFontSize(14)
+                .setBold()
+                .setFontColor(com.itextpdf.kernel.colors.ColorConstants.BLACK)
+                .setMarginTop(20)
+                .setMarginBottom(15);
         document.add(dataTitle);
-        
-        // Create professional table
+
+        // If this is a doctor report for a single doctor, render a doctor-specific layout
+        if (!data.isEmpty() && data.get(0) instanceof DoctorConsultationDTO) {
+            DoctorConsultationDTO doctor = (DoctorConsultationDTO) data.get(0);
+
+            // If filters requested a single doctor (we have detailed consultations), render doctor-specific report
+            if (doctor.getConsultations() != null && !doctor.getConsultations().isEmpty()) {
+                // Doctor header block in Spanish
+                Paragraph doctorHeader = new Paragraph("INFORME DEL DOCTOR: " + (doctor.getDoctorName() != null ? doctor.getDoctorName() : "-"))
+                        .setFontSize(12)
+                        .setBold()
+                        .setMarginBottom(8);
+                document.add(doctorHeader);
+
+                // Doctor info table in Spanish
+                com.itextpdf.layout.element.Table infoTable = new com.itextpdf.layout.element.Table(2).useAllAvailableWidth();
+                infoTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("ID del Doctor")));
+                infoTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(doctor.getDoctorId() != null ? String.valueOf(doctor.getDoctorId()) : "N/A")));
+                infoTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Especialidad")));
+                infoTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(doctor.getSpecialty() != null ? doctor.getSpecialty() : "N/A")));
+                infoTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Total de Consultas")));
+                infoTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(doctor.getTotalConsultations() != null ? String.valueOf(doctor.getTotalConsultations()) : "0")));
+                document.add(infoTable.setMarginBottom(12));
+
+                // Modified consultations table with Spanish headers - columns separadas para Diagnóstico y Notas
+                String[] headers = {"Código", "Nombre del Paciente", "Fecha de Consulta", "Centro Médico", "Diagnóstico", "Notas"};
+                com.itextpdf.layout.element.Table consultTable = new com.itextpdf.layout.element.Table(headers.length).useAllAvailableWidth().setMarginBottom(20);
+
+                // Add header cells with grey background
+                for (String h : headers) {
+                    com.itextpdf.layout.element.Cell headerCell = new com.itextpdf.layout.element.Cell()
+                            .add(new Paragraph(h).setBold().setFontSize(9).setFontColor(com.itextpdf.kernel.colors.ColorConstants.BLACK))
+                            .setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY)
+                            .setTextAlignment(TextAlignment.CENTER)
+                            .setPadding(6);
+                    consultTable.addHeaderCell(headerCell);
+                }
+
+                boolean even = false;
+                for (DoctorConsultationDTO.ConsultationDetail detail : doctor.getConsultations()) {
+                    com.itextpdf.kernel.colors.Color rowColor = even ? new com.itextpdf.kernel.colors.DeviceRgb(248, 249, 250) : com.itextpdf.kernel.colors.ColorConstants.WHITE;
+
+                    consultTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(detail.getId() != null ? String.valueOf(detail.getId()) : "-")).setBackgroundColor(rowColor).setPadding(6));
+                    consultTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(detail.getPatientName() != null ? detail.getPatientName() : "-")).setBackgroundColor(rowColor).setPadding(6));
+                    consultTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(formatValueForProfessionalPdf(detail.getConsultationDate()))).setBackgroundColor(rowColor).setPadding(6).setTextAlignment(TextAlignment.CENTER));
+                    consultTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(detail.getMedicalCenter() != null ? detail.getMedicalCenter() : "-")).setBackgroundColor(rowColor).setPadding(6));
+                    consultTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(detail.getDiagnosis() != null ? detail.getDiagnosis() : "")).setBackgroundColor(rowColor).setPadding(6));
+                    consultTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(detail.getNotes() != null ? detail.getNotes() : "")).setBackgroundColor(rowColor).setPadding(6));
+
+                    even = !even;
+                }
+
+                document.add(consultTable);
+                return;
+            }
+        }
+
+        // Create professional table for other data types
         T firstEntity = data.get(0);
         Field[] fields = firstEntity.getClass().getDeclaredFields();
-        
+
         com.itextpdf.layout.element.Table table = new com.itextpdf.layout.element.Table(fields.length)
-            .useAllAvailableWidth()
-            .setMarginBottom(20);
-        
-        // Add professional headers
+                .useAllAvailableWidth()
+                .setMarginBottom(20);
+
+        // Add professional headers with grey background
         for (Field field : fields) {
-            String headerText = formatFieldNameProfessional(field.getName());
+            String headerText = formatFieldNameProfessionalSpanish(field.getName());
             com.itextpdf.layout.element.Cell headerCell = new com.itextpdf.layout.element.Cell()
-                .add(new Paragraph(headerText)
-                    .setBold()
-                    .setFontSize(10)
-                    .setFontColor(com.itextpdf.kernel.colors.ColorConstants.WHITE))
-                .setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.BLACK)
-                .setTextAlignment(TextAlignment.CENTER)
-                .setPadding(8);
+                    .add(new Paragraph(headerText)
+                            .setBold()
+                            .setFontSize(10)
+                            .setFontColor(com.itextpdf.kernel.colors.ColorConstants.BLACK))
+                    .setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setPadding(8);
             table.addHeaderCell(headerCell);
         }
-        
+
         // Add data rows with alternating colors
         boolean isEvenRow = false;
         for (T entity : data) {
-            com.itextpdf.kernel.colors.Color rowColor = isEvenRow ? 
-                new com.itextpdf.kernel.colors.DeviceRgb(248, 249, 250) : 
-                com.itextpdf.kernel.colors.ColorConstants.WHITE;
-            
+            com.itextpdf.kernel.colors.Color rowColor = isEvenRow ?
+                    new com.itextpdf.kernel.colors.DeviceRgb(248, 249, 250) :
+                    com.itextpdf.kernel.colors.ColorConstants.WHITE;
+
             for (Field field : fields) {
                 field.setAccessible(true);
                 try {
                     Object value = field.get(entity);
                     String cellValue = formatValueForProfessionalPdf(value);
-                    
+
                     com.itextpdf.layout.element.Cell dataCell = new com.itextpdf.layout.element.Cell()
-                        .add(new Paragraph(cellValue).setFontSize(9))
-                        .setBackgroundColor(rowColor)
-                        .setTextAlignment(getTextAlignmentForValue(value))
-                        .setPadding(6);
+                            .add(new Paragraph(cellValue).setFontSize(9))
+                            .setBackgroundColor(rowColor)
+                            .setTextAlignment(getTextAlignmentForValue(value))
+                            .setPadding(6);
                     table.addCell(dataCell);
                 } catch (Exception e) {
                     com.itextpdf.layout.element.Cell errorCell = new com.itextpdf.layout.element.Cell()
-                        .add(new Paragraph("N/A").setFontSize(9).setItalic())
-                        .setBackgroundColor(rowColor)
-                        .setTextAlignment(TextAlignment.CENTER)
-                        .setPadding(6);
+                            .add(new Paragraph("N/A").setFontSize(9).setItalic())
+                            .setBackgroundColor(rowColor)
+                            .setTextAlignment(TextAlignment.CENTER)
+                            .setPadding(6);
                     table.addCell(errorCell);
                 }
             }
             isEvenRow = !isEvenRow;
         }
-        
+
         document.add(table);
-            
     }
-    
+
+
+
+
     /**
      * Adds analytics section with charts and insights
      */
@@ -475,69 +580,117 @@ public class ReportExportUtil {
      * Adds professional footer with metadata
      */
     private void addProfessionalFooter(Document document, ReportResponseDTO<?> report) {
-        // Add some space before footer
-        document.add(new Paragraph(" ").setMarginTop(20));
-        
-        // Footer separator
-        com.itextpdf.layout.element.Table separatorTable = new com.itextpdf.layout.element.Table(1).useAllAvailableWidth();
-        com.itextpdf.layout.element.Cell separatorCell = new com.itextpdf.layout.element.Cell()
-            .setBorder(com.itextpdf.layout.borders.Border.NO_BORDER)
-            .setBorderTop(new com.itextpdf.layout.borders.SolidBorder(com.itextpdf.kernel.colors.ColorConstants.GRAY, 1))
-            .setHeight(10);
-        separatorTable.addCell(separatorCell);
-        document.add(separatorTable);
-        
-        // Report metadata section
-        Paragraph footerTitle = new Paragraph("REPORT INFORMATION")
-            .setFontSize(12)
-            .setBold()
-            .setMarginTop(15)
-            .setMarginBottom(10);
-        document.add(footerTitle);
-        
-        // Metadata table
+    // Add some space before footer
+    document.add(new Paragraph(" ").setMarginTop(20));
+    
+    // Footer separator
+    com.itextpdf.layout.element.Table separatorTable = new com.itextpdf.layout.element.Table(1).useAllAvailableWidth();
+    com.itextpdf.layout.element.Cell separatorCell = new com.itextpdf.layout.element.Cell()
+        .setBorder(com.itextpdf.layout.borders.Border.NO_BORDER)
+        .setBorderTop(new com.itextpdf.layout.borders.SolidBorder(com.itextpdf.kernel.colors.ColorConstants.GRAY, 1))
+        .setHeight(10);
+    separatorTable.addCell(separatorCell);
+    document.add(separatorTable);
+    
+    // Report metadata section in Spanish
+    Paragraph footerTitle = new Paragraph("INFORMACIÓN DEL REPORTE")
+        .setFontSize(12)
+        .setBold()
+        .setMarginTop(15)
+        .setMarginBottom(10);
+    document.add(footerTitle);
+    
+    // Metadata table
         if (report.getMetadata() != null) {
             try {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> metadataMap = objectMapper.convertValue(report.getMetadata(), Map.class);
-                
+
                 com.itextpdf.layout.element.Table metadataTable = new com.itextpdf.layout.element.Table(2)
-                    .useAllAvailableWidth();
-                
+                        .useAllAvailableWidth();
+
                 for (Map.Entry<String, Object> entry : metadataMap.entrySet()) {
                     if (!"appliedFilters".equals(entry.getKey())) {
-                        String key = formatFieldNameProfessional(entry.getKey());
+                        String key = formatFieldNameProfessionalSpanish(entry.getKey());
                         String value = formatValueForProfessionalPdf(entry.getValue());
-                        
+
+                        // Celda de clave - SIN bold
                         metadataTable.addCell(new com.itextpdf.layout.element.Cell()
-                            .add(new Paragraph(key).setFontSize(8))
-                            .setPadding(3)
-                            .setBorder(com.itextpdf.layout.borders.Border.NO_BORDER));
-                        
+                                .add(new Paragraph(key).setFontSize(8))
+                                .setPadding(3)
+                                .setBorder(com.itextpdf.layout.borders.Border.NO_BORDER));
+
+                        // Celda de valor - SIN bold (quitado el .setBold())
                         metadataTable.addCell(new com.itextpdf.layout.element.Cell()
-                            .add(new Paragraph(value).setFontSize(8).setBold())
-                            .setPadding(3)
-                            .setBorder(com.itextpdf.layout.borders.Border.NO_BORDER));
+                                .add(new Paragraph(value).setFontSize(8)) // <- Aquí se quitó el .setBold()
+                                .setPadding(3)
+                                .setBorder(com.itextpdf.layout.borders.Border.NO_BORDER));
                     }
                 }
-                
+
                 document.add(metadataTable);
             } catch (Exception e) {
                 // Metadata processing completed
             }
         }
-        
-        // Footer information
-        Paragraph footer = new Paragraph("This report was generated by Hospital Management System Analytics Engine. " +
-                "Data accuracy verified and compliant with healthcare reporting standards.")
-            .setFontSize(8)
-            .setFontColor(com.itextpdf.kernel.colors.ColorConstants.GRAY)
-            .setTextAlignment(TextAlignment.CENTER)
-            .setMarginTop(15);
-        document.add(footer);
+    
+    // Footer information in Spanish
+    Paragraph footer = new Paragraph("Este reporte fue generado por el Motor de Análisis del Sistema de Gestión Hospitalaria. " +
+            "La exactitud de los datos ha sido verificada y cumple con los estándares de reportes de salud.")
+        .setFontSize(8)
+        .setFontColor(com.itextpdf.kernel.colors.ColorConstants.GRAY)
+        .setTextAlignment(TextAlignment.CENTER)
+        .setMarginTop(15);
+    document.add(footer);
+}
+
+/**
+ * Formats field names with professional enterprise styling in Spanish
+ */
+private String formatFieldNameProfessionalSpanish(String fieldName) {
+    // Handle common business terms with proper formatting in Spanish
+    Map<String, String> businessTerms = new java.util.HashMap<>();
+    businessTerms.put("doctorId", "ID del Doctor");
+    businessTerms.put("doctorName", "Nombre del Doctor");
+    businessTerms.put("specialtyId", "ID de Especialidad");
+    businessTerms.put("specialty", "Especialidad Médica");
+    businessTerms.put("totalConsultations", "Total de Consultas");
+    businessTerms.put("consultations", "Consultas de Pacientes");
+    businessTerms.put("patientName", "Nombre del Paciente");
+    businessTerms.put("consultationDate", "Fecha de Consulta");
+    businessTerms.put("medicalCenter", "Centro Médico");
+    businessTerms.put("centerId", "ID del Centro");
+    businessTerms.put("centerName", "Nombre del Centro");
+    businessTerms.put("totalRecords", "Total de Registros");
+    businessTerms.put("generationDate", "Fecha de Generación");
+    businessTerms.put("executionTime", "Tiempo de Ejecución (ms)");
+    businessTerms.put("reportName", "Nombre del Reporte");
+    businessTerms.put("reportDescription", "Descripción del Reporte");
+    businessTerms.put("currentPage", "Página Actual");
+    businessTerms.put("totalPages", "Total de Páginas");
+    businessTerms.put("pageSize", "Tamaño de Página");
+    businessTerms.put("consultationId", "Código");
+    businessTerms.put("id", "Código");
+    businessTerms.put("notes", "Notas/Diagnóstico");
+    
+    // Check if we have a specific business term
+    String businessTerm = businessTerms.get(fieldName);
+    if (businessTerm != null) {
+        return businessTerm.toUpperCase();
     }
     
-
+    // Default professional formatting
+    String[] words = fieldName.split("(?=\\p{Upper})");
+    StringBuilder result = new StringBuilder();
+    for (String word : words) {
+        if (!word.isEmpty()) {
+            result.append(word.substring(0, 1).toUpperCase())
+                  .append(word.substring(1).toLowerCase())
+                  .append(" ");
+        }
+    }
+    return result.toString().trim().toUpperCase();
+}
     
     /**
      * Adds additional data section to PDF

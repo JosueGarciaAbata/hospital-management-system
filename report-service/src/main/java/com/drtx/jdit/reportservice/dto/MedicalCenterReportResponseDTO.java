@@ -1,4 +1,4 @@
-package consulting_service.dtos.response.reports;
+package com.drtx.jdit.reportservice.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,19 +8,23 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
- * DTO for monthly report responses
+ * DTO para respuestas de reportes por centro médico
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MonthlyReportResponseDTO {
+public class MedicalCenterReportResponseDTO {
 
     private ExecutiveSummaryDTO executiveSummary;
-    private List<MonthlyStatisticDTO> monthlyStatistics;
+    private List<MedicalCenterStatisticDTO> centerStatistics;
+    private Map<String, Integer> weeklyDistribution;
     private ReportKpisDTO kpis;
+    private List<DetailedConsultationDTO> detailedConsultations;
+    private PaginationInfoDTO paginationInfo;
 
     @Data
     @Builder
@@ -28,11 +32,12 @@ public class MonthlyReportResponseDTO {
     @AllArgsConstructor
     public static class ExecutiveSummaryDTO {
         private Integer totalConsultations;
-        private Long monthsAnalyzed;
+        private Long uniqueCenters;
         private LocalDate dateRangeStart;
         private LocalDate dateRangeEnd;
         private LocalDateTime reportGeneratedAt;
         private Boolean hasDateFilter;
+        private Boolean hasData;
         private String reportType;
     }
 
@@ -40,12 +45,13 @@ public class MonthlyReportResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class MonthlyStatisticDTO {
-        private String period;
+    public static class MedicalCenterStatisticDTO {
+        private Long centerId;
+        private String centerName;
         private Integer totalConsultations;
-        private Integer uniquePatients;
         private Integer uniqueDoctors;
-        private Integer specialtyCount;
-        private Double growth;
+        private Integer uniquePatients;
+        private Double consultationsPerDoctor;
+        private Double marketShare;
     }
 }

@@ -1,4 +1,4 @@
-package consulting_service.dtos.response.reports;
+package com.drtx.jdit.reportservice.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.util.Map;
 
 /**
- * DTO for report KPIs
+ * DTO para KPIs en los reportes
  */
 @Data
 @Builder

@@ -36,5 +36,6 @@ public class DoctorConsultationDTO {
         private String notes;
         private Double consultationCost;
         private String medicalCenter;
+        private String diagnosis;
     }
 }

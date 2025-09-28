@@ -24,4 +24,5 @@ public class SpecialtyConsultationDTO {
     private String notes;
     private Double consultationCost;
     private String medicalCenter;
+    private Long totalConsultations; // Nuevo campo para almacenar el total de consultas por especialidad
 }

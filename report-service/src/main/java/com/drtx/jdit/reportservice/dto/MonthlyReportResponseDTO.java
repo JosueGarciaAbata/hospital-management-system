@@ -1,4 +1,4 @@
-package consulting_service.dtos.response.reports;
+package com.drtx.jdit.reportservice.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * DTO for monthly report responses
+ * DTO para respuestas de reportes mensuales
  */
 @Data
 @Builder
@@ -33,6 +33,7 @@ public class MonthlyReportResponseDTO {
         private LocalDate dateRangeEnd;
         private LocalDateTime reportGeneratedAt;
         private Boolean hasDateFilter;
+        private Boolean hasData;
         private String reportType;
     }
 

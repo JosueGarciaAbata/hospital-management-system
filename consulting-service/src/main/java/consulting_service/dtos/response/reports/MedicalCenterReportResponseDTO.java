@@ -1,4 +1,4 @@
-package consulting_service.dtos.response;
+package consulting_service.dtos.response.reports;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

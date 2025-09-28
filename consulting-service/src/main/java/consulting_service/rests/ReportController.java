@@ -1,12 +1,12 @@
 package consulting_service.rests;
 
 import consulting_service.dtos.request.*;
-import consulting_service.dtos.response.*;
 import consulting_service.dtos.response.reports.DoctorReportResponseDTO;
 import consulting_service.dtos.response.reports.MedicalCenterReportResponseDTO;
 import consulting_service.dtos.response.reports.MonthlyReportResponseDTO;
 import consulting_service.dtos.response.reports.SpecialtyReportResponseDTO;
 import consulting_service.security.annotations.RolesAllowed;
+import consulting_service.services.reports.ReportGenerationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -30,7 +30,7 @@ public class ReportController {
     @PostMapping("/by-specialty")
     public ResponseEntity<SpecialtyReportResponseDTO> getConsultationsBySpecialty(
             @RequestBody SpecialtyReportRequestDTO request,
-            @PageableDefault(sort = "consultationDate", direction = Sort.Direction.DESC) Pageable pageable) {
+            @PageableDefault(sort = "date", direction = Sort.Direction.DESC) Pageable pageable) {
 
         log.info("Received request for specialty report: {}", request);
         try {
@@ -48,7 +48,7 @@ public class ReportController {
     @PostMapping("/by-doctor")
     public ResponseEntity<DoctorReportResponseDTO> getConsultationsByDoctor(
             @RequestBody DoctorReportRequestDTO request,
-            @PageableDefault(sort = "consultationDate", direction = Sort.Direction.DESC) Pageable pageable) {
+            @PageableDefault(sort = "date", direction = Sort.Direction.DESC) Pageable pageable) {
 
         log.info("Received request for doctor report: {}", request);
         try {
@@ -64,7 +64,7 @@ public class ReportController {
     @PostMapping("/by-center")
     public ResponseEntity<MedicalCenterReportResponseDTO> getConsultationsByMedicalCenter(
             @RequestBody MedicalCenterReportRequestDTO request,
-            @PageableDefault(sort = "consultationDate", direction = Sort.Direction.DESC) Pageable pageable) {
+            @PageableDefault(sort = "date", direction = Sort.Direction.DESC) Pageable pageable) {
 
         log.info("Received request for medical center report: {}", request);
         try {
@@ -80,7 +80,7 @@ public class ReportController {
     @PostMapping("/by-month")
     public ResponseEntity<MonthlyReportResponseDTO> getConsultationsByMonth(
             @RequestBody MonthlyReportRequestDTO request,
-            @PageableDefault(sort = "consultationDate", direction = Sort.Direction.DESC) Pageable pageable) {
+            @PageableDefault(sort = "date", direction = Sort.Direction.DESC) Pageable pageable) {
 
         log.info("Received request for monthly report: {}", request);
         try {

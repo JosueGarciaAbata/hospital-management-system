@@ -1,10 +1,13 @@
-package consulting_service.dtos.response.reports;
+package com.drtx.jdit.reportservice.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * DTO para información de paginación en los reportes
+ */
 @Data
 @Builder
 @NoArgsConstructor
