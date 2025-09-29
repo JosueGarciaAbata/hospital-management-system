@@ -2,10 +2,13 @@ package consulting_service.specifications;
 
 import consulting_service.entities.MedicalConsultation;
 import jakarta.persistence.criteria.Join;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+@Slf4j
 
 /**
  * Especificaciones dinámicas para filtrar MedicalConsultation
@@ -36,9 +39,16 @@ public class MedicalConsultationSpecifications {
     public static Specification<MedicalConsultation> specialtyIdIn(List<Long> specialtyIds) {
         return (root, query, cb) -> {
             if (specialtyIds == null || specialtyIds.isEmpty()) return null;
-            // Usa este join si tu MedicalConsultation tiene ManyToOne con Specialty
-            Join<Object, Object> join = root.join("specialty"); // reemplaza "specialty" por el nombre exacto del atributo
-            return join.get("id").in(specialtyIds);
+            try {
+                // Usa este join si tu MedicalConsultation tiene ManyToOne con Specialty
+                Join<Object, Object> join = root.join("specialty"); // reemplaza "specialty" por el nombre exacto del atributo
+                return join.get("id").in(specialtyIds);
+            } catch (IllegalArgumentException iae) {
+                // Si la entidad MedicalConsultation no tiene relación mapeada a Specialty, evitar lanzar la excepción
+                // y devolver null para que esta condición no se aplicada por JPA Specification.
+                log.warn("No se puede aplicar filtro por especialidad vía JPA Specification porque la entidad MedicalConsultation no tiene relación 'specialty' mapeada: {}", iae.getMessage());
+                return null;
+            }
         };
     }
 
