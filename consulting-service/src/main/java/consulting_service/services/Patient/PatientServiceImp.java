@@ -5,7 +5,9 @@ import consulting_service.dtos.response.PatientResponseDTO;
 import consulting_service.entities.Patient;
 import consulting_service.exceptions.DuplicateDniException;
 import consulting_service.exceptions.NotFoundException;
+import consulting_service.exceptions.PatientHasConsultationsException;
 import consulting_service.mappers.PatientMapper;
+import consulting_service.repositories.MedicalConsultationsRepository;
 import consulting_service.repositories.PatientRepository;
 
 import org.springframework.data.domain.PageRequest;
@@ -23,10 +25,12 @@ public class PatientServiceImp  implements  PatientService{
 
     private final PatientRepository repository;
     private final PatientMapper mapper;
+    private final MedicalConsultationsRepository consultationsRepository;
 
-    public PatientServiceImp(PatientRepository repository,PatientMapper mapper) {
+    public PatientServiceImp(PatientRepository repository,PatientMapper mapper,MedicalConsultationsRepository consultationsRepository) {
         this.repository = repository;
         this.mapper = mapper;
+        this.consultationsRepository = consultationsRepository;
     }
 
 
@@ -89,14 +93,17 @@ public class PatientServiceImp  implements  PatientService{
 
     @Override
     public void deletePatient(Long id) {
+        Patient patient = repository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new NotFoundException("Paciente con ID " + id + " no encontrado."));
 
-        Patient patient = repository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Paciente no encontrado"));
+        boolean hasConsultations = consultationsRepository.existsByPatientIdAndDeletedFalse(patient.getId());
+
+        if (hasConsultations) {
+            throw new PatientHasConsultationsException(id);
+        }
 
         patient.setDeleted(true);
-
         repository.save(patient);
-
     }
 
     @Override

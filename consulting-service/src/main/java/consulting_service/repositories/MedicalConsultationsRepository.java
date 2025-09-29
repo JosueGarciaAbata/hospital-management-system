@@ -32,6 +32,9 @@ public interface MedicalConsultationsRepository extends JpaRepository<MedicalCon
 
     Page<MedicalConsultation> findByDoctorIdInAndDeletedFalse(List<Long> doctorIds, Pageable pageable);
 
+
+    boolean existsByPatientIdAndDeletedFalse(Long patientId);
+
     /**
      * Búsqueda con filtros dinámicos
      */
