@@ -34,11 +34,6 @@ public class PatientController {
         this.mapper = mapper;
     }
 
-    /**
-     * Aunque el gateway pone el centerId en los headers (@RequestHeader("X-Center-Id") Long centerId),
-     * en caso de que otro microservicio lo necesite tal vez no sea lo más óptimo,
-     * así que mejor lo mando como RequestParam.
-     */
     @RolesAllowed({"ADMIN", "DOCTOR"})
     @GetMapping
     @Operation(

@@ -59,6 +59,8 @@ public class RoleCheckAspect {
             return joinPoint.proceed();
         } catch (ResponseStatusException e) {
             throw e;
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             System.err.println("Error en la verificación de roles: " + e.getMessage());
             e.printStackTrace();
@@ -67,6 +69,7 @@ public class RoleCheckAspect {
                     "Error al verificar los roles: " + e.getMessage()
             );
         }
+
     }
 
 }
