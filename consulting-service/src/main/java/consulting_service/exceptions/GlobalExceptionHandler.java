@@ -66,4 +66,16 @@ public class GlobalExceptionHandler {
 
         return problemDetail;
     }
+
+    @ExceptionHandler(PatientHasConsultationsException.class)
+    public ProblemDetail handlePatientHasConsultations(PatientHasConsultationsException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Eliminación no permitida");
+        problemDetail.setType(URI.create("https://example.com/patient-has-consultations"));
+
+        return problemDetail;
+    }
 }

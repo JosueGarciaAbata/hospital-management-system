@@ -23,11 +23,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 public class MedicalConsultationController {
 
     private final MedicalConsultationsService service;
-    private final DoctorServiceClient doctorServiceClient;
-
-    public MedicalConsultationController(MedicalConsultationsService service, DoctorServiceClient doctorServiceClient) {
+    public MedicalConsultationController(MedicalConsultationsService service) {
         this.service = service;
-        this.doctorServiceClient = doctorServiceClient;
     }
 
     /* =========================
