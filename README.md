@@ -113,8 +113,8 @@ Copy-Item .example.docker.env .env
 Ejecuta desde la carpeta raíz del proyecto padre:
 
 ```bash
-docker compose -f docker-compose-test.yml --build
-docker compose -f docker-compose-test.yml up -d
+docker compose -f docker-compose-prod.yml --build
+docker compose -f docker-compose-prod.yml up -d
 ```
 
 ### 3. Verificación rápida

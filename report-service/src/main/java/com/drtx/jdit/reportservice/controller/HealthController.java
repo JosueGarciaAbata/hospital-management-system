@@ -1,4 +1,4 @@
-package com.drtx.jdit.reportservice.rest;
+package com.drtx.jdit.reportservice.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

@@ -4,10 +4,8 @@ import feign.Logger;
 import feign.codec.ErrorDecoder;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +14,6 @@ import java.util.Map;
  * Configuración de Feign con manejo de errores y logging completo
  */
 @Configuration
-@EnableFeignClients(basePackages = "com.drtx.jdit.reportservice.external.feign")
 @Slf4j
 public class FeignConfig {
 
@@ -61,15 +58,12 @@ public class FeignConfig {
 
             switch (status) {
                 case 401 -> {
-                    // log.error("Error de autenticación (401). URL: {}", requestUrl);
                     return new FeignException.Unauthorized("Autenticación requerida: " + methodKey, response.request(), null, null);
                 }
                 case 403 -> {
-                    // log.error("Error de autorización (403). URL: {}", requestUrl);
                     return new FeignException.Forbidden("Acceso denegado: " + methodKey, response.request(), null, null);
                 }
                 case 404 -> {
-                    // log.warn("Recurso no encontrado (404). URL: {}", requestUrl);
                     return new FeignException.NotFound("Recurso no encontrado: " + methodKey, response.request(), null, null);
                 }
                 default -> {

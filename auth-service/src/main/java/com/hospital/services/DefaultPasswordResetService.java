@@ -72,7 +72,7 @@ public class DefaultPasswordResetService implements PasswordResetService {
             ClassPathResource resource = new ClassPathResource("templates/emails/password-reset.html");
             String html = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
 
-            html = html.replace("${user}", user.getUsername());
+            html = html.replace("${user}", user.getFirstName() + " " + user.getLastName());
             html = html.replace("${reset_url}", resetUrl);
 
             emailService.sendEmail(user.getEmail(), "Restablece tu contraseña", html);

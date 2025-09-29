@@ -6,9 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Map;
-
 /**
  * Implementación del repositorio de consultas que utiliza FeignClient
  */
@@ -20,7 +17,7 @@ public class ConsultaRepositoryImpl implements ConsultaRepository {
     private final ConsultingServiceClient consultingServiceClient;
 
     @Override
-    public List<Map<String, Object>> getConsultasPorEspecialidad(String token, SpecialtyReportRequestDTO request) {
+    public SpecialtyReportResponseDTO getConsultasPorEspecialidad(String token, SpecialtyReportRequestDTO request) {
         // log.info("Obteniendo consultas por especialidad con filtros: {}", request);
         try {
             return consultingServiceClient.getConsultationsBySpecialty(
@@ -35,7 +32,7 @@ public class ConsultaRepositoryImpl implements ConsultaRepository {
     }
 
     @Override
-    public List<Map<String, Object>> getConsultasPorMedico(String token, DoctorReportRequestDTO request) {
+    public DoctorReportResponseDTO getConsultasPorMedico(String token, DoctorReportRequestDTO request) {
         // log.info("Obteniendo consultas por médico con filtros: {}", request);
         try {
             return consultingServiceClient.getConsultationsByDoctor(
@@ -50,7 +47,7 @@ public class ConsultaRepositoryImpl implements ConsultaRepository {
     }
 
     @Override
-    public List<Map<String, Object>> getConsultasPorCentro(String token, MedicalCenterReportRequestDTO request) {
+    public MedicalCenterReportResponseDTO getConsultasPorCentro(String token, MedicalCenterReportRequestDTO request) {
         // log.info("Obteniendo consultas por centro médico con filtros: {}", request);
         try {
             return consultingServiceClient.getConsultationsByCenter(
@@ -65,7 +62,7 @@ public class ConsultaRepositoryImpl implements ConsultaRepository {
     }
 
     @Override
-    public List<Map<String, Object>> getConsultasMensuales(String token, MonthlyReportRequestDTO request) {
+    public MonthlyReportResponseDTO getConsultasMensuales(String token, MonthlyReportRequestDTO request) {
         // log.info("Obteniendo consultas mensuales con filtros: {}", request);
         try {
             return consultingServiceClient.getConsultationsByMonth(

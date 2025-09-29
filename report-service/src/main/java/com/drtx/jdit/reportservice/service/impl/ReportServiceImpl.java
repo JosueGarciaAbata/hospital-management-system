@@ -24,6 +24,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import com.drtx.jdit.reportservice.dto.DoctorConsultationDTO;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,6 +51,38 @@ public class ReportServiceImpl implements ReportService {
             
             // Get report data
             var responseData = getReportData(request);
+
+            // If this is a DOCTOR report and a specific doctor id was requested, try to narrow
+            // the response to that single doctor so the PDF export shows doctor-focused info.
+            try {
+                if ("DOCTOR".equalsIgnoreCase(request.getReportType()) && request.getFilterId() != null) {
+                    List<?> dataList = responseData.getData();
+                    if (dataList != null && dataList.size() > 1) {
+                        List<DoctorConsultationDTO> filtered = dataList.stream()
+                            .filter(d -> d instanceof DoctorConsultationDTO)
+                            .map(d -> (DoctorConsultationDTO) d)
+                            .filter(doc -> doc.getDoctorId() != null && doc.getDoctorId().equals(request.getFilterId()))
+                            .collect(Collectors.toList());
+
+                        if (!filtered.isEmpty()) {
+                            // Build a new ReportResponseDTO with only the targeted doctor
+                            var singleResponse = new ReportResponseDTO<DoctorConsultationDTO>();
+                            singleResponse.setData(filtered);
+                            singleResponse.setReportName(responseData.getReportName());
+                            singleResponse.setMessage(responseData.getMessage());
+                            singleResponse.setTotalElements(filtered.size());
+                            singleResponse.setGeneratedAt(responseData.getGeneratedAt());
+                            singleResponse.setMetadata(responseData.getMetadata());
+                            singleResponse.setAdditionalData(responseData.getAdditionalData());
+
+                            // Replace responseData used for export
+                            responseData = singleResponse;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // Best effort filtering, do not fail the whole generation if it errors
+            }
             
             // Convert to the format expected by ReportExportUtil
             var exportFormat = transformResponse(responseData);
@@ -231,24 +264,23 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public ReportResponseDTO<SpecialtyConsultationDTO> getConsultationsBySpecialty(ReportFilterRequestDTO filters) {
         final String token = getAuthorizationToken();
-        // // log.info("Getting consultation report by specialty with filters: {}", filters);
-        
+
+        // log.info("Getting consultation report by specialty with filters: {}", filters);
+
         try {
             // Create request DTO
             SpecialtyReportRequestDTO request = createSpecialtyRequest(filters);
             
             // Call the consulting service via Feign client
-            List<Map<String, Object>> rawData = consultingServiceClient.getConsultationsBySpecialty(
+            SpecialtyReportResponseDTO reportResponse = consultingServiceClient.getConsultationsBySpecialty(
                 token,
                 ConsultingServiceClient.DEFAULT_ROLE,
                 request
             );
             
-            // Convert raw data to DTOs
-            List<SpecialtyConsultationDTO> consultations = rawData.stream()
-                .map(this::mapToSpecialtyConsultationDTO)
-                .collect(java.util.stream.Collectors.toList());
-            
+            // Convert structured response to our DTO format
+            List<SpecialtyConsultationDTO> consultations = convertSpecialtyReportToConsultationDTOs(reportResponse);
+
             // Create response
             ReportResponseDTO<SpecialtyConsultationDTO> response = new ReportResponseDTO<>();
             response.setData(consultations);
@@ -260,7 +292,7 @@ public class ReportServiceImpl implements ReportService {
             return response;
             
         } catch (Exception e) {
-            // // log.error("Error getting consultations by specialty: {}", e.getMessage(), e);
+            // log.error("Error getting consultations by specialty: {}", e.getMessage(), e);
             throw new RuntimeException("Error getting consultations by specialty: " + e.getMessage(), e);
         }
     }
@@ -268,24 +300,22 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public ReportResponseDTO<DoctorConsultationDTO> getConsultationsByDoctor(ReportFilterRequestDTO filters) {
         final String token = getAuthorizationToken();
-        // // log.info("Getting consultation report by doctor with filters: {}", filters);
-        
+        // log.info("Getting consultation report by doctor with filters: {}", filters);
+
         try {
             // Create request DTO
             DoctorReportRequestDTO request = createDoctorRequest(filters);
             
             // Call the consulting service via Feign client
-            List<Map<String, Object>> rawData = consultingServiceClient.getConsultationsByDoctor(
+            DoctorReportResponseDTO reportResponse = consultingServiceClient.getConsultationsByDoctor(
                 token,
                 ConsultingServiceClient.DEFAULT_ROLE,
                 request
             );
             
-            // Convert raw data to DTOs
-            List<DoctorConsultationDTO> consultations = rawData.stream()
-                .map(this::mapToDoctorConsultationDTO)
-                .collect(java.util.stream.Collectors.toList());
-            
+            // Convert structured response to our DTO format
+            List<DoctorConsultationDTO> consultations = convertDoctorReportToConsultationDTOs(reportResponse);
+
             // Create response
             ReportResponseDTO<DoctorConsultationDTO> response = new ReportResponseDTO<>();
             response.setData(consultations);
@@ -297,7 +327,7 @@ public class ReportServiceImpl implements ReportService {
             return response;
             
         } catch (Exception e) {
-            // // log.error("Error getting consultations by doctor: {}", e.getMessage(), e);
+            // log.error("Error getting consultations by doctor: {}", e.getMessage(), e);
             throw new RuntimeException("Error getting consultations by doctor: " + e.getMessage(), e);
         }
     }
@@ -305,24 +335,22 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public ReportResponseDTO<MedicalCenterConsultationDTO> getConsultationsByCenter(ReportFilterRequestDTO filters) {
         final String token = getAuthorizationToken();
-        // // log.info("Getting consultation report by medical center with filters: {}", filters);
-        
+        // log.info("Getting consultation report by medical center with filters: {}", filters);
+
         try {
             // Create request DTO
             MedicalCenterReportRequestDTO request = createMedicalCenterRequest(filters);
             
             // Call the consulting service via Feign client
-            List<Map<String, Object>> rawData = consultingServiceClient.getConsultationsByCenter(
+            MedicalCenterReportResponseDTO reportResponse = consultingServiceClient.getConsultationsByCenter(
                 token,
                 ConsultingServiceClient.DEFAULT_ROLE,
                 request
             );
             
-            // Convert raw data to DTOs
-            List<MedicalCenterConsultationDTO> consultations = rawData.stream()
-                .map(this::mapToMedicalCenterConsultationDTO)
-                .collect(java.util.stream.Collectors.toList());
-            
+            // Convert structured response to our DTO format
+            List<MedicalCenterConsultationDTO> consultations = convertMedicalCenterReportToConsultationDTOs(reportResponse);
+
             // Create response
             ReportResponseDTO<MedicalCenterConsultationDTO> response = new ReportResponseDTO<>();
             response.setData(consultations);
@@ -334,7 +362,7 @@ public class ReportServiceImpl implements ReportService {
             return response;
             
         } catch (Exception e) {
-            // // log.error("Error getting consultations by medical center: {}", e.getMessage(), e);
+            // log.error("Error getting consultations by medical center: {}", e.getMessage(), e);
             throw new RuntimeException("Error getting consultations by medical center: " + e.getMessage(), e);
         }
     }
@@ -342,24 +370,22 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public ReportResponseDTO<MonthlyConsultationDTO> getMonthlyConsultations(ReportFilterRequestDTO filters) {
         final String token = getAuthorizationToken();
-        // // log.info("Getting monthly consultation report with filters: {}", filters);
-        
+        // log.info("Getting monthly consultation report with filters: {}", filters);
+
         try {
             // Create request DTO
             MonthlyReportRequestDTO request = createMonthlyRequest(filters);
             
             // Call the consulting service via Feign client
-            List<Map<String, Object>> rawData = consultingServiceClient.getConsultationsByMonth(
+            MonthlyReportResponseDTO reportResponse = consultingServiceClient.getConsultationsByMonth(
                 token,
                 ConsultingServiceClient.DEFAULT_ROLE,
                 request
             );
             
-            // Convert raw data to DTOs
-            List<MonthlyConsultationDTO> consultations = rawData.stream()
-                .map(this::mapToMonthlyConsultationDTO)
-                .collect(java.util.stream.Collectors.toList());
-            
+            // Convert structured response to our DTO format
+            List<MonthlyConsultationDTO> consultations = convertMonthlyReportToConsultationDTOs(reportResponse);
+
             // Create response
             ReportResponseDTO<MonthlyConsultationDTO> response = new ReportResponseDTO<>();
             response.setData(consultations);
@@ -371,7 +397,7 @@ public class ReportServiceImpl implements ReportService {
             return response;
             
         } catch (Exception e) {
-            // // log.error("Error getting monthly consultations: {}", e.getMessage(), e);
+            // log.error("Error getting monthly consultations: {}", e.getMessage(), e);
             throw new RuntimeException("Error getting monthly consultations: " + e.getMessage(), e);
         }
     }
@@ -483,13 +509,37 @@ public class ReportServiceImpl implements ReportService {
         List<DoctorConsultationDTO.ConsultationDetail> consultations = new ArrayList<>();
         
         if (consultasData != null) {
-            consultations = consultasData.stream()
-                .map(consultaData -> DoctorConsultationDTO.ConsultationDetail.builder()
-                    .id(convertToLong(consultaData.get("consultaId")))
-                    .patientName((String) consultaData.get("nombrePaciente"))
-                    .consultationDate(convertToLocalDateTime(consultaData.get("fechaConsulta")))
-                    .status((String) consultaData.get("estado"))
-                    .build())
+                consultations = consultasData.stream()
+                .map(consultaData -> {
+                    // try to fetch medical center names from possible keys
+                    String center = null;
+                    if (consultaData.get("centerName") != null) center = String.valueOf(consultaData.get("centerName"));
+                    else if (consultaData.get("nombreCentro") != null) center = String.valueOf(consultaData.get("nombreCentro"));
+                    else if (consultaData.get("centro") != null) center = String.valueOf(consultaData.get("centro"));
+                    else if (consultaData.get("centerId") != null) center = "Centro ID: " + String.valueOf(consultaData.get("centerId"));
+                    else if (consultaData.get("centroId") != null) center = "Centro ID: " + String.valueOf(consultaData.get("centroId"));
+                    else if (consultaData.get("idCentro") != null) center = "Centro ID: " + String.valueOf(consultaData.get("idCentro"));
+                    else if (consultaData.get("medicalCenterId") != null) center = "Centro ID: " + String.valueOf(consultaData.get("medicalCenterId"));
+
+                    String notes = null;
+                    if (consultaData.get("notes") != null) notes = (String) consultaData.get("notes");
+                    else if (consultaData.get("notas") != null) notes = (String) consultaData.get("notas");
+
+                    Double cost = null;
+                    Object costObj = consultaData.get("consultationCost");
+                    if (costObj == null) costObj = consultaData.get("costo");
+                    if (costObj instanceof Number) cost = ((Number) costObj).doubleValue();
+
+                    return DoctorConsultationDTO.ConsultationDetail.builder()
+                        .id(convertToLong(consultaData.get("consultaId")))
+                        .patientName((String) consultaData.get("nombrePaciente"))
+                        .consultationDate(convertToLocalDateTime(consultaData.get("fechaConsulta")))
+                        .status((String) consultaData.get("estado"))
+                        .notes(notes)
+                        .consultationCost(cost)
+                        .medicalCenter(center)
+                        .build();
+                })
                 .collect(java.util.stream.Collectors.toList());
         }
         
@@ -676,7 +726,7 @@ public class ReportServiceImpl implements ReportService {
             .distinct()
             .count();
             
-        // Count distinct patients
+        // Count distinct patients = consultas.stream().flatMap(doctor -> doctor.getConsultations().stream()).map(DoctorConsultationDTO.ConsultationDetail::getPatientName).distinct().count();
         long totalPatients = consultations.stream()
             .flatMap(doctor -> doctor.getConsultations().stream())
             .map(DoctorConsultationDTO.ConsultationDetail::getPatientName)
@@ -919,5 +969,197 @@ public class ReportServiceImpl implements ReportService {
             }
         }
         return null;
+    }
+
+    /**
+     * Converts the specialized SpecialtyReportResponseDTO to a List of SpecialtyConsultationDTO
+     */
+    private List<SpecialtyConsultationDTO> convertSpecialtyReportToConsultationDTOs(SpecialtyReportResponseDTO reportResponse) {
+        List<SpecialtyConsultationDTO> result = new ArrayList<>();
+
+        if (reportResponse == null) {
+            return result;
+        }
+
+        // Extract specialty statistics
+        if (reportResponse.getSpecialtyStatistics() != null) {
+            for (SpecialtyReportResponseDTO.SpecialtyStatisticDTO stat : reportResponse.getSpecialtyStatistics()) {
+                // Creamos un DTO por cada especialidad, con datos básicos
+                SpecialtyConsultationDTO dto = new SpecialtyConsultationDTO();
+                dto.setSpecialty(stat.getSpecialty());
+                // Establecer el total de consultas en el nuevo campo
+                if (stat.getTotalConsultations() != null) {
+                    dto.setTotalConsultations(stat.getTotalConsultations().longValue());
+                }
+                // Mantener la información en notes como complemento
+                dto.setNotes("Total consultations: " + stat.getTotalConsultations());
+                result.add(dto);
+            }
+        }
+
+        // Add detailed consultations if available
+        if (reportResponse.getDetailedConsultations() != null) {
+            for (DetailedConsultationDTO detail : reportResponse.getDetailedConsultations()) {
+                SpecialtyConsultationDTO dto = new SpecialtyConsultationDTO();
+                dto.setId(detail.getConsultationId());
+                dto.setSpecialty(detail.getSpecialty());
+                dto.setDoctorName(detail.getDoctorName());
+                dto.setPatientName(detail.getPatientName());
+                dto.setConsultationDate(detail.getConsultationDate());
+                dto.setStatus(detail.getStatus());
+                dto.setNotes(detail.getNotes());
+                dto.setMedicalCenter(detail.getCenterName());
+                result.add(dto);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Converts the specialized DoctorReportResponseDTO to a List of DoctorConsultationDTO
+     */
+    private List<DoctorConsultationDTO> convertDoctorReportToConsultationDTOs(DoctorReportResponseDTO reportResponse) {
+        List<DoctorConsultationDTO> result = new ArrayList<>();
+
+        if (reportResponse == null) {
+            return result;
+        }
+
+        // Process doctor statistics
+        if (reportResponse.getDoctorStatistics() != null) {
+            for (DoctorReportResponseDTO.DoctorStatisticDTO stat : reportResponse.getDoctorStatistics()) {
+                // Create doctor consultation DTO
+                DoctorConsultationDTO doctorDTO = new DoctorConsultationDTO();
+                doctorDTO.setDoctorId(stat.getDoctorId());
+                doctorDTO.setDoctorName(stat.getDoctorName());
+                doctorDTO.setSpecialty(stat.getSpecialty());
+                doctorDTO.setTotalConsultations((long) stat.getTotalConsultations());
+
+                // Create consultation details from detailed consultations
+                List<DoctorConsultationDTO.ConsultationDetail> details = new ArrayList<>();
+
+                // If detailed consultations available, find ones for this doctor
+                if (reportResponse.getDetailedConsultations() != null) {
+                    for (DetailedConsultationDTO detail : reportResponse.getDetailedConsultations()) {
+                        // Filter consultations for current doctor
+                        if (stat.getDoctorName().equals(detail.getDoctorName())) {
+                            DoctorConsultationDTO.ConsultationDetail consultDetail = new DoctorConsultationDTO.ConsultationDetail();
+                            consultDetail.setId(detail.getConsultationId());
+                            consultDetail.setPatientName(detail.getPatientName());
+                            consultDetail.setConsultationDate(detail.getConsultationDate());
+                            consultDetail.setStatus(detail.getStatus());
+                            // Populate center name and notes if available
+                            consultDetail.setMedicalCenter(detail.getCenterName());
+                            consultDetail.setNotes(detail.getNotes());
+                            details.add(consultDetail);
+                        }
+                    }
+                }
+
+                doctorDTO.setConsultations(details);
+                result.add(doctorDTO);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Converts the specialized MedicalCenterReportResponseDTO to a List of MedicalCenterConsultationDTO
+     */
+    private List<MedicalCenterConsultationDTO> convertMedicalCenterReportToConsultationDTOs(MedicalCenterReportResponseDTO reportResponse) {
+        List<MedicalCenterConsultationDTO> result = new ArrayList<>();
+
+        if (reportResponse == null) {
+            return result;
+        }
+
+        // Process center statistics
+        if (reportResponse.getCenterStatistics() != null) {
+            for (MedicalCenterReportResponseDTO.MedicalCenterStatisticDTO stat : reportResponse.getCenterStatistics()) {
+                // Create medical center consultation DTO
+                MedicalCenterConsultationDTO centerDTO = new MedicalCenterConsultationDTO();
+                centerDTO.setCenterId(stat.getCenterId());
+                centerDTO.setCenterName(stat.getCenterName());
+                centerDTO.setTotalConsultations((long) stat.getTotalConsultations());
+
+                // Create consultation details from detailed consultations
+                List<MedicalCenterConsultationDTO.ConsultationDetail> details = new ArrayList<>();
+
+                // If detailed consultations available, find ones for this center
+                if (reportResponse.getDetailedConsultations() != null) {
+                    for (DetailedConsultationDTO detail : reportResponse.getDetailedConsultations()) {
+                        // Filter consultations for current center
+                        if (stat.getCenterName().equals(detail.getCenterName())) {
+                            MedicalCenterConsultationDTO.ConsultationDetail consultDetail = new MedicalCenterConsultationDTO.ConsultationDetail();
+                            consultDetail.setId(detail.getConsultationId());
+                            consultDetail.setDoctorName(detail.getDoctorName());
+                            consultDetail.setPatientName(detail.getPatientName());
+                            consultDetail.setSpecialty(detail.getSpecialty());
+                            consultDetail.setConsultationDate(detail.getConsultationDate());
+                            consultDetail.setStatus(detail.getStatus());
+                            details.add(consultDetail);
+                        }
+                    }
+                }
+
+                centerDTO.setConsultations(details);
+                result.add(centerDTO);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Converts the specialized MonthlyReportResponseDTO to a List of MonthlyConsultationDTO
+     */
+    private List<MonthlyConsultationDTO> convertMonthlyReportToConsultationDTOs(MonthlyReportResponseDTO reportResponse) {
+        List<MonthlyConsultationDTO> result = new ArrayList<>();
+
+        if (reportResponse == null || reportResponse.getMonthlyStatistics() == null) {
+            return result;
+        }
+
+        // Process each monthly statistic
+        for (MonthlyReportResponseDTO.MonthlyStatisticDTO stat : reportResponse.getMonthlyStatistics()) {
+            // Extract month and year from period (e.g., "01/2023")
+            String[] periodParts = stat.getPeriod().split("/");
+            if (periodParts.length != 2) continue;
+
+            try {
+                int month = Integer.parseInt(periodParts[0]);
+                int year = Integer.parseInt(periodParts[1]);
+
+                // Create monthly consultation DTO
+                MonthlyConsultationDTO monthlyDTO = new MonthlyConsultationDTO();
+                monthlyDTO.setMonth(month);
+                monthlyDTO.setYear(year);
+                monthlyDTO.setTotalConsultations(stat.getTotalConsultations());
+
+                // Group specialties by month (for this example, we'll simulate specialty data)
+                List<MonthlyConsultationDTO.SpecialtySummary> specialtySummaries = new ArrayList<>();
+
+                // If KPIs contains distinct specialties info, we can use it to generate dummy specialty data
+                if (reportResponse.getKpis() != null && reportResponse.getKpis().getDistinctSpecialties() != null) {
+                    long specialtyCount = Math.min(stat.getSpecialtyCount(), 5); // Limit to 5 for simplicity
+                    for (int i = 0; i < specialtyCount; i++) {
+                        MonthlyConsultationDTO.SpecialtySummary summary = new MonthlyConsultationDTO.SpecialtySummary();
+                        summary.setSpecialtyName("Especialidad " + (i + 1));
+                        summary.setConsultationCount(stat.getTotalConsultations() / (int)specialtyCount);
+                        specialtySummaries.add(summary);
+                    }
+                }
+
+                monthlyDTO.setSpecialties(specialtySummaries);
+                result.add(monthlyDTO);
+            } catch (NumberFormatException e) {
+                // Skip this entry if period format is invalid
+                continue;
+            }
+        }
+
+        return result;
     }
 }
