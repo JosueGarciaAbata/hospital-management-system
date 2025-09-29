@@ -29,11 +29,25 @@ public class ReportController {
     @RolesAllowed({"ADMIN", "DOCTOR"})
     @PostMapping("/by-specialty")
     public ResponseEntity<SpecialtyReportResponseDTO> getConsultationsBySpecialty(
-            @RequestBody SpecialtyReportRequestDTO request,
-            @PageableDefault(sort = "date", direction = Sort.Direction.DESC) Pageable pageable) {
+            @RequestBody SpecialtyReportRequestDTO request) {
 
         log.info("Received request for specialty report: {}", request);
         try {
+            // Build Pageable from request DTO so Feign clients that only send body will control pagination
+            int page = request.getPage() != null ? request.getPage() : 0;
+            int size = request.getSize() != null ? request.getSize() : 20;
+            Sort sort = Sort.by("date");
+            if (request.getSortBy() != null && !request.getSortBy().isEmpty()) {
+                sort = Sort.by(request.getSortBy());
+            }
+            if (request.getSortDirection() != null && request.getSortDirection().equalsIgnoreCase("asc")) {
+                sort = sort.ascending();
+            } else {
+                sort = sort.descending();
+            }
+
+            Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, sort);
+
             SpecialtyReportResponseDTO response = reportService.generateSpecialtyReport(request, pageable);
             return ResponseEntity.ok()
                     .header("Content-Type", "application/json; charset=UTF-8")
@@ -47,11 +61,24 @@ public class ReportController {
     @RolesAllowed({"ADMIN", "DOCTOR"})
     @PostMapping("/by-doctor")
     public ResponseEntity<DoctorReportResponseDTO> getConsultationsByDoctor(
-            @RequestBody DoctorReportRequestDTO request,
-            @PageableDefault(sort = "date", direction = Sort.Direction.DESC) Pageable pageable) {
+            @RequestBody DoctorReportRequestDTO request) {
 
         log.info("Received request for doctor report: {}", request);
         try {
+            int page = request.getPage() != null ? request.getPage() : 0;
+            int size = request.getSize() != null ? request.getSize() : 20;
+            Sort sort = Sort.by("date");
+            if (request.getSortBy() != null && !request.getSortBy().isEmpty()) {
+                sort = Sort.by(request.getSortBy());
+            }
+            if (request.getSortDirection() != null && request.getSortDirection().equalsIgnoreCase("asc")) {
+                sort = sort.ascending();
+            } else {
+                sort = sort.descending();
+            }
+
+            Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, sort);
+
             DoctorReportResponseDTO response = reportService.generateDoctorReport(request, pageable);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -63,11 +90,24 @@ public class ReportController {
     @RolesAllowed({"ADMIN", "DOCTOR"})
     @PostMapping("/by-center")
     public ResponseEntity<MedicalCenterReportResponseDTO> getConsultationsByMedicalCenter(
-            @RequestBody MedicalCenterReportRequestDTO request,
-            @PageableDefault(sort = "date", direction = Sort.Direction.DESC) Pageable pageable) {
+            @RequestBody MedicalCenterReportRequestDTO request) {
 
         log.info("Received request for medical center report: {}", request);
         try {
+            int page = request.getPage() != null ? request.getPage() : 0;
+            int size = request.getSize() != null ? request.getSize() : 20;
+            Sort sort = Sort.by("date");
+            if (request.getSortBy() != null && !request.getSortBy().isEmpty()) {
+                sort = Sort.by(request.getSortBy());
+            }
+            if (request.getSortDirection() != null && request.getSortDirection().equalsIgnoreCase("asc")) {
+                sort = sort.ascending();
+            } else {
+                sort = sort.descending();
+            }
+
+            Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, sort);
+
             MedicalCenterReportResponseDTO response = reportService.generateMedicalCenterReport(request, pageable);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -79,11 +119,24 @@ public class ReportController {
     @RolesAllowed({"ADMIN", "DOCTOR"})
     @PostMapping("/by-month")
     public ResponseEntity<MonthlyReportResponseDTO> getConsultationsByMonth(
-            @RequestBody MonthlyReportRequestDTO request,
-            @PageableDefault(sort = "date", direction = Sort.Direction.DESC) Pageable pageable) {
+            @RequestBody MonthlyReportRequestDTO request) {
 
         log.info("Received request for monthly report: {}", request);
         try {
+            int page = request.getPage() != null ? request.getPage() : 0;
+            int size = request.getSize() != null ? request.getSize() : 20;
+            Sort sort = Sort.by("date");
+            if (request.getSortBy() != null && !request.getSortBy().isEmpty()) {
+                sort = Sort.by(request.getSortBy());
+            }
+            if (request.getSortDirection() != null && request.getSortDirection().equalsIgnoreCase("asc")) {
+                sort = sort.ascending();
+            } else {
+                sort = sort.descending();
+            }
+
+            Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, sort);
+
             MonthlyReportResponseDTO response = reportService.generateMonthlyReport(request, pageable);
             return ResponseEntity.ok(response);
         } catch (Exception e) {

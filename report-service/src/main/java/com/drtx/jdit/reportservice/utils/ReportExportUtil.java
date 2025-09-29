@@ -60,13 +60,71 @@ public class ReportExportUtil {
             if (data == null || data.isEmpty()) {
                 Row row = sheet.createRow(0);
                 org.apache.poi.ss.usermodel.Cell cell = row.createCell(0);
-                cell.setCellValue("No data available");
+                cell.setCellValue("No hay datos disponibles");
                 workbook.write(outputStream);
                 return outputStream.toByteArray();
             }
             
             // Extract column names from first entity
             T firstEntity = data.get(0);
+            // Special-case: if this is a doctor report with detailed consultations, create a dedicated sheet layout
+            if (firstEntity instanceof DoctorConsultationDTO) {
+                DoctorConsultationDTO doctor = (DoctorConsultationDTO) firstEntity;
+
+                // Doctor info header rows
+                Row doctorRow = sheet.createRow(0);
+                doctorRow.createCell(0).setCellValue("ID del Doctor");
+                doctorRow.createCell(1).setCellValue(doctor.getDoctorId() != null ? String.valueOf(doctor.getDoctorId()) : "N/A");
+                Row nameRow = sheet.createRow(1);
+                nameRow.createCell(0).setCellValue("Nombre del Doctor");
+                nameRow.createCell(1).setCellValue(doctor.getDoctorName() != null ? doctor.getDoctorName() : "N/A");
+                Row specRow = sheet.createRow(2);
+                specRow.createCell(0).setCellValue("Especialidad");
+                specRow.createCell(1).setCellValue(doctor.getSpecialty() != null ? doctor.getSpecialty() : "N/A");
+                Row totalRow = sheet.createRow(3);
+                totalRow.createCell(0).setCellValue("Total de Consultas");
+                totalRow.createCell(1).setCellValue(doctor.getTotalConsultations() != null ? doctor.getTotalConsultations() : 0);
+
+                // Leave a blank row then create consultations header
+                int headerRowIndex = 5;
+                Row headerRow = sheet.createRow(headerRowIndex);
+                String[] consultHeaders = {"Código", "Nombre del Paciente", "Fecha de Consulta", "Centro Médico", "Diagnóstico", "Notas"};
+                for (int i = 0; i < consultHeaders.length; i++) {
+                    org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
+                    cell.setCellValue(consultHeaders[i]);
+                    cell.setCellStyle(headerStyle);
+                }
+
+                // Fill consultation rows
+                List<DoctorConsultationDTO.ConsultationDetail> consultations = doctor.getConsultations();
+                int rowNum = headerRowIndex + 1;
+                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+                if (consultations != null) {
+                    for (DoctorConsultationDTO.ConsultationDetail d : consultations) {
+                        Row row = sheet.createRow(rowNum++);
+                        row.createCell(0).setCellValue(d.getId() != null ? String.valueOf(d.getId()) : "");
+                        row.createCell(1).setCellValue(d.getPatientName() != null ? d.getPatientName() : "");
+                        row.createCell(2).setCellValue(d.getConsultationDate() != null ? d.getConsultationDate().format(dtf) : "");
+                        row.createCell(3).setCellValue(d.getMedicalCenter() != null ? d.getMedicalCenter() : "");
+                        row.createCell(4).setCellValue(d.getDiagnosis() != null ? d.getDiagnosis() : "");
+                        row.createCell(5).setCellValue(d.getNotes() != null ? d.getNotes() : "");
+                    }
+                }
+
+                // Auto-size relevant columns
+                for (int i = 0; i < consultHeaders.length; i++) sheet.autoSizeColumn(i);
+
+                // Add metadata and return
+                if (report.getAdditionalData() != null) {
+                    Sheet summarySheet = workbook.createSheet("Summary");
+                    createSummarySheet(summarySheet, report.getAdditionalData(), headerStyle);
+                }
+                Sheet metadataSheet = workbook.createSheet("Metadata");
+                createMetadataSheet(metadataSheet, report.getMetadata(), headerStyle);
+
+                workbook.write(outputStream);
+                return outputStream.toByteArray();
+            }
             Field[] fields = firstEntity.getClass().getDeclaredFields();
             
             Row headerRow = sheet.createRow(0);
@@ -131,12 +189,62 @@ public class ReportExportUtil {
         List<T> data = report.getData();
         
         if (data == null || data.isEmpty()) {
-            return "No data available";
+            return "No hay datos disponibles";
         }
         
         // Extract column names from the first entity
         T firstEntity = data.get(0);
         Field[] fields = firstEntity.getClass().getDeclaredFields();
+
+        // Special-case CSV for doctor reports: include doctor info block + consultations
+        if (firstEntity instanceof DoctorConsultationDTO) {
+            DoctorConsultationDTO doctor = (DoctorConsultationDTO) firstEntity;
+            StringBuilder sb = new StringBuilder();
+            sb.append("ID del Doctor, ").append(doctor.getDoctorId() != null ? doctor.getDoctorId() : "N/A").append("\n");
+            sb.append("Nombre del Doctor, ").append(doctor.getDoctorName() != null ? doctor.getDoctorName() : "N/A").append("\n");
+            sb.append("Especialidad, ").append(doctor.getSpecialty() != null ? doctor.getSpecialty() : "N/A").append("\n");
+            sb.append("Total de Consultas, ").append(doctor.getTotalConsultations() != null ? doctor.getTotalConsultations() : 0).append("\n\n");
+
+            // Consultations header
+            String[] consultHeaders = {"Código", "Nombre del Paciente", "Fecha de Consulta", "Centro Médico", "Diagnóstico", "Notas"};
+            for (int i = 0; i < consultHeaders.length; i++) {
+                sb.append('"').append(consultHeaders[i]).append('"');
+                if (i < consultHeaders.length - 1) sb.append(',');
+            }
+            sb.append('\n');
+
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            if (doctor.getConsultations() != null) {
+                for (DoctorConsultationDTO.ConsultationDetail d : doctor.getConsultations()) {
+                    sb.append('"').append(d.getId() != null ? d.getId() : "").append('"').append(',');
+                    sb.append('"').append(d.getPatientName() != null ? d.getPatientName().replace('"', ' '): "").append('"').append(',');
+                    sb.append('"').append(d.getConsultationDate() != null ? d.getConsultationDate().format(dtf) : "").append('"').append(',');
+                    sb.append('"').append(d.getMedicalCenter() != null ? d.getMedicalCenter().replace('"',' ') : "").append('"').append(',');
+                    sb.append('"').append(d.getDiagnosis() != null ? d.getDiagnosis().replace('"',' ') : "").append('"').append(',');
+                    sb.append('"').append(d.getNotes() != null ? d.getNotes().replace('"',' ') : "").append('"').append('\n');
+                }
+            }
+
+            return sb.toString();
+        }
+
+        // Special-case CSV for monthly reports: show AÑO, MES (nombre), TOTAL DE CONSULTAS (sin revenue)
+        if (firstEntity instanceof com.drtx.jdit.reportservice.dto.MonthlyConsultationDTO) {
+            StringBuilder sb = new StringBuilder();
+            sb.append('"').append("AÑO").append('"').append(',').append('"').append("MES").append('"').append(',').append('"').append("TOTAL DE CONSULTAS").append('"').append('\n');
+            for (T ent : data) {
+                com.drtx.jdit.reportservice.dto.MonthlyConsultationDTO m = (com.drtx.jdit.reportservice.dto.MonthlyConsultationDTO) ent;
+                String monthName = "";
+                if (m.getMonth() != null) {
+                    java.time.Month mon = java.time.Month.of(Math.max(1, Math.min(12, m.getMonth())));
+                    monthName = mon.getDisplayName(java.time.format.TextStyle.FULL, new java.util.Locale("es"));
+                }
+                sb.append('"').append(m.getYear() != null ? m.getYear() : "").append('"').append(',');
+                sb.append('"').append(monthName).append('"').append(',');
+                sb.append('"').append(m.getTotalConsultations() != null ? m.getTotalConsultations() : 0).append('"').append('\n');
+            }
+            return sb.toString();
+        }
         
         // Headers
         for (int i = 0; i < fields.length; i++) {
@@ -192,7 +300,7 @@ public class ReportExportUtil {
         // === DATA TABLE ===
         addDataTable(document, report);
         
-        // === ANALYTICS SECTION ===
+        // === ANALÍTICA Y CONCLUSIONES ===
         if (report.getAdditionalData() != null) {
             document.add(new AreaBreak());
             addAnalyticsSection(document, report.getAdditionalData());
@@ -242,7 +350,7 @@ public class ReportExportUtil {
         
         // Date and time info
         LocalDateTime now = LocalDateTime.now();
-        Paragraph dateInfo = new Paragraph("Fecha de emisión: " + now.format(DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy 'at' HH:mm:ss")))
+        Paragraph dateInfo = new Paragraph("Fecha de emisión: " + now.format(DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM 'de' yyyy 'a las' HH:mm:ss", new java.util.Locale("es"))))
             .setTextAlignment(TextAlignment.CENTER)
             .setFontSize(10)
             .setFontColor(com.itextpdf.kernel.colors.ColorConstants.DARK_GRAY)
@@ -340,14 +448,7 @@ public class ReportExportUtil {
 
         document.add(summaryTable);
     }
-    /**
-     * Método helper para agregar fila de datos con estilo ligero
-     */
 
-
-    /**
-     * Adds a row to the summary table
-     */
     private void addSummaryRow(com.itextpdf.layout.element.Table table, String metric, String value) {
         com.itextpdf.layout.element.Cell metricCell = new com.itextpdf.layout.element.Cell()
             .add(new Paragraph(metric).setFontSize(9))
@@ -364,10 +465,6 @@ public class ReportExportUtil {
         table.addCell(valueCell);
     }
     
-    /**
-     * Adds the main data table with professional formatting
-     */
-
 
     private <T> void addDataTable(Document document, ReportResponseDTO<T> report) {
         List<T> data = report.getData();
@@ -405,6 +502,7 @@ public class ReportExportUtil {
 
                 // Doctor info table in Spanish
                 com.itextpdf.layout.element.Table infoTable = new com.itextpdf.layout.element.Table(2).useAllAvailableWidth();
+                // Use doctor ID label and value (fallback to N/A) as requested
                 infoTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("ID del Doctor")));
                 infoTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(doctor.getDoctorId() != null ? String.valueOf(doctor.getDoctorId()) : "N/A")));
                 infoTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Especialidad")));
@@ -444,6 +542,158 @@ public class ReportExportUtil {
                 document.add(consultTable);
                 return;
             }
+        }
+
+    // Special-case: if this is a Monthly report, render year + month name table (sin columna de revenue)
+    List<com.drtx.jdit.reportservice.dto.MonthlyConsultationDTO> monthlyItems = new java.util.ArrayList<>();
+    for (T item : data) {
+        if (item instanceof com.drtx.jdit.reportservice.dto.MonthlyConsultationDTO) {
+            monthlyItems.add((com.drtx.jdit.reportservice.dto.MonthlyConsultationDTO) item);
+        }
+    }
+
+    if (!monthlyItems.isEmpty()) {
+        // Render a compact monthly table: AÑO | MES | TOTAL CONSULTAS
+        com.itextpdf.layout.element.Table monthTable = new com.itextpdf.layout.element.Table(new float[]{2, 3, 2}).useAllAvailableWidth().setMarginBottom(12);
+        // Headers
+        String[] monthHeaders = {"AÑO", "MES", "TOTAL DE CONSULTAS"};
+        for (String h : monthHeaders) {
+            monthTable.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(h).setBold()).setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY).setTextAlignment(TextAlignment.CENTER).setPadding(6));
+        }
+
+        for (com.drtx.jdit.reportservice.dto.MonthlyConsultationDTO m : monthlyItems) {
+            String monthName = "";
+            if (m.getMonth() != null) {
+                java.time.Month mon = java.time.Month.of(Math.max(1, Math.min(12, m.getMonth())));
+                monthName = mon.getDisplayName(java.time.format.TextStyle.FULL, new java.util.Locale("es"));
+            }
+            monthTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(m.getYear() != null ? String.valueOf(m.getYear()) : "")).setPadding(6).setTextAlignment(TextAlignment.CENTER));
+            monthTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(monthName)).setPadding(6).setTextAlignment(TextAlignment.LEFT));
+            monthTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(m.getTotalConsultations() != null ? String.valueOf(m.getTotalConsultations()) : "0")).setPadding(6).setTextAlignment(TextAlignment.CENTER));
+        }
+
+        document.add(monthTable);
+        return;
+    }
+
+    // Special-case: if this is a Specialty report, render a professional table without the 'status' column
+    List<com.drtx.jdit.reportservice.dto.SpecialtyConsultationDTO> specialtyItems = new java.util.ArrayList<>();
+    for (T item : data) {
+        if (item instanceof com.drtx.jdit.reportservice.dto.SpecialtyConsultationDTO) {
+        specialtyItems.add((com.drtx.jdit.reportservice.dto.SpecialtyConsultationDTO) item);
+        }
+    }
+
+        if (!specialtyItems.isEmpty()) {
+            // Improve readability by grouping first by specialty, then by doctor.
+            // For each specialty we render a group header, then for each doctor we render a small
+            // doctor header and a consultations table. This avoids repeating doctor names in every row
+            // and makes multi-consultation specialties easy to read.
+
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+            // Group while preserving insertion order by specialty
+            java.util.Map<String, java.util.List<com.drtx.jdit.reportservice.dto.SpecialtyConsultationDTO>> groupedBySpecialty = new java.util.LinkedHashMap<>();
+            for (com.drtx.jdit.reportservice.dto.SpecialtyConsultationDTO s : specialtyItems) {
+                String key = s.getSpecialty() != null ? s.getSpecialty() : "Sin Especialidad";
+                groupedBySpecialty.computeIfAbsent(key, k -> new java.util.ArrayList<>()).add(s);
+            }
+
+            for (java.util.Map.Entry<String, java.util.List<com.drtx.jdit.reportservice.dto.SpecialtyConsultationDTO>> entry : groupedBySpecialty.entrySet()) {
+                String specialtyName = entry.getKey();
+                java.util.List<com.drtx.jdit.reportservice.dto.SpecialtyConsultationDTO> items = entry.getValue();
+
+                // Determine total consultations for this specialty
+                Long totalConsults = null;
+                for (com.drtx.jdit.reportservice.dto.SpecialtyConsultationDTO it : items) {
+                    if (it.getId() == null && it.getTotalConsultations() != null) {
+                        totalConsults = it.getTotalConsultations();
+                        break;
+                    }
+                }
+                if (totalConsults == null) {
+                    totalConsults = (long) items.stream().filter(i -> i.getId() != null).count();
+                }
+
+                // Specialty header
+                Paragraph specialtyHeader = new Paragraph(specialtyName + " — Total consultas: " + totalConsults)
+                    .setBold()
+                    .setFontSize(11)
+                    .setFontColor(com.itextpdf.kernel.colors.ColorConstants.WHITE)
+                    .setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.DARK_GRAY)
+                    .setPaddingTop(6)
+                    .setPaddingBottom(6)
+                    .setMarginTop(6)
+                    .setMarginBottom(6);
+                document.add(specialtyHeader);
+
+                // Group by doctor inside this specialty (use doctor name + id as key to preserve uniqueness)
+                java.util.Map<String, java.util.List<com.drtx.jdit.reportservice.dto.SpecialtyConsultationDTO>> byDoctor = new java.util.LinkedHashMap<>();
+                for (com.drtx.jdit.reportservice.dto.SpecialtyConsultationDTO it : items) {
+                    // skip summary rows (id == null)
+                    if (it.getId() == null) continue;
+                    String docName = it.getDoctorName() != null ? it.getDoctorName() : "Médico desconocido";
+                    String key = docName; // group by doctor name only (DTO doesn't contain doctorId)
+                    byDoctor.computeIfAbsent(key, k -> new java.util.ArrayList<>()).add(it);
+                }
+
+                // If there is no doctor-specific data (all items were summaries), just continue
+                if (byDoctor.isEmpty()) {
+                    // show a small note that there are no detailed consultations
+                    Paragraph noDetails = new Paragraph("No hay consultas detalladas para esta especialidad.")
+                        .setItalic()
+                        .setFontSize(9)
+                        .setMarginBottom(8);
+                    document.add(noDetails);
+                    continue;
+                }
+
+                // For each doctor, render a doctor header + consultations table
+                for (java.util.Map.Entry<String, java.util.List<com.drtx.jdit.reportservice.dto.SpecialtyConsultationDTO>> docEntry : byDoctor.entrySet()) {
+                    String docKey = docEntry.getKey();
+                    java.util.List<com.drtx.jdit.reportservice.dto.SpecialtyConsultationDTO> consultations = docEntry.getValue();
+
+                    // Extract readable doctor name (we grouped by name only)
+                    String doctorName = docKey;
+
+                    Paragraph doctorHeader = new Paragraph("Médico: " + doctorName + " — Total: " + consultations.size())
+                        .setBold()
+                        .setFontSize(10)
+                        .setMarginTop(6)
+                        .setMarginBottom(6);
+                    document.add(doctorHeader);
+
+                    // Consultation table for this doctor (no repeated 'Médico' column)
+                    String[] consultHeaders = {"Código", "Paciente", "Fecha de Consulta", "Centro Médico", "Notas"};
+                    com.itextpdf.layout.element.Table consultTable = new com.itextpdf.layout.element.Table(consultHeaders.length).useAllAvailableWidth().setMarginBottom(12);
+
+                    for (String h : consultHeaders) {
+                        com.itextpdf.layout.element.Cell headerCell = new com.itextpdf.layout.element.Cell()
+                            .add(new Paragraph(h).setBold().setFontSize(9).setFontColor(com.itextpdf.kernel.colors.ColorConstants.BLACK))
+                            .setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY)
+                            .setTextAlignment(TextAlignment.CENTER)
+                            .setPadding(6);
+                        consultTable.addHeaderCell(headerCell);
+                    }
+
+                    boolean evenRow = false;
+                    for (com.drtx.jdit.reportservice.dto.SpecialtyConsultationDTO detail : consultations) {
+                        com.itextpdf.kernel.colors.Color rowColor = evenRow ? new com.itextpdf.kernel.colors.DeviceRgb(248, 249, 250) : com.itextpdf.kernel.colors.ColorConstants.WHITE;
+
+                        consultTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(detail.getId() != null ? String.valueOf(detail.getId()) : "-" )).setBackgroundColor(rowColor).setPadding(6));
+                        consultTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(detail.getPatientName() != null ? detail.getPatientName() : "-" )).setBackgroundColor(rowColor).setPadding(6));
+                        consultTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(formatValueForProfessionalPdf(detail.getConsultationDate()))).setBackgroundColor(rowColor).setPadding(6).setTextAlignment(TextAlignment.CENTER));
+                        consultTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(detail.getMedicalCenter() != null ? detail.getMedicalCenter() : "-" )).setBackgroundColor(rowColor).setPadding(6));
+                        consultTable.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(detail.getNotes() != null ? detail.getNotes() : "" )).setBackgroundColor(rowColor).setPadding(6));
+
+                        evenRow = !evenRow;
+                    }
+
+                    document.add(consultTable);
+                }
+            }
+
+            return;
         }
 
         // Create professional table for other data types
@@ -510,7 +760,7 @@ public class ReportExportUtil {
      */
     private void addAnalyticsSection(Document document, Object additionalData) {
         try {
-            Paragraph analyticsTitle = new Paragraph("ANALYTICS & INSIGHTS")
+            Paragraph analyticsTitle = new Paragraph("ANÁLISIS Y CONCLUSIONES")
                 .setFontSize(14)
                 .setBold()
                 .setFontColor(com.itextpdf.kernel.colors.ColorConstants.BLACK)
@@ -527,7 +777,7 @@ public class ReportExportUtil {
                 .setMarginBottom(20);
             
             // Headers
-            String[] headers = {"PERFORMANCE INDICATOR", "VALUE", "TREND"};
+            String[] headers = {"MÉTRICA", "VALOR", "TENDENCIA"};
             for (String header : headers) {
                 com.itextpdf.layout.element.Cell headerCell = new com.itextpdf.layout.element.Cell()
                     .add(new Paragraph(header).setBold().setFontSize(10).setFontColor(com.itextpdf.kernel.colors.ColorConstants.WHITE))
@@ -697,7 +947,7 @@ private String formatFieldNameProfessionalSpanish(String fieldName) {
      */
     private void addAdditionalDataToPdf(Document document, Object additionalData) {
         try {
-            Paragraph additionalTitle = new Paragraph("Additional Statistics")
+            Paragraph additionalTitle = new Paragraph("ESTADÍSTICAS ADICIONALES")
                 .setFontSize(14)
                 .setBold()
                 .setMarginTop(20);
@@ -710,10 +960,10 @@ private String formatFieldNameProfessionalSpanish(String fieldName) {
             
             // Headers
             additionalTable.addHeaderCell(new com.itextpdf.layout.element.Cell()
-                .add(new Paragraph("Metric").setBold())
+                .add(new Paragraph("MÉTRICA").setBold())
                 .setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY));
             additionalTable.addHeaderCell(new com.itextpdf.layout.element.Cell()
-                .add(new Paragraph("Value").setBold())
+                .add(new Paragraph("VALOR").setBold())
                 .setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY));
             
             // Data
@@ -736,7 +986,7 @@ private String formatFieldNameProfessionalSpanish(String fieldName) {
      */
     private void addMetadataToPdf(Document document, Object metadata) {
         try {
-            Paragraph metadataTitle = new Paragraph("Report Metadata")
+            Paragraph metadataTitle = new Paragraph("METADATA DEL REPORTE")
                 .setFontSize(14)
                 .setBold()
                 .setMarginTop(20);
@@ -749,10 +999,10 @@ private String formatFieldNameProfessionalSpanish(String fieldName) {
             
             // Headers
             metadataTable.addHeaderCell(new com.itextpdf.layout.element.Cell()
-                .add(new Paragraph("Property").setBold())
+                .add(new Paragraph("PROPIEDAD").setBold())
                 .setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY));
             metadataTable.addHeaderCell(new com.itextpdf.layout.element.Cell()
-                .add(new Paragraph("Value").setBold())
+                .add(new Paragraph("VALOR").setBold())
                 .setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY));
             
             // Data
@@ -834,19 +1084,19 @@ private String formatFieldNameProfessionalSpanish(String fieldName) {
         if (value == null) {
             return "N/A";
         } else if (value instanceof LocalDate) {
-            return ((LocalDate) value).format(DateTimeFormatter.ofPattern("MMM dd, yyyy"));
+            return ((LocalDate) value).format(DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", new java.util.Locale("es")));
         } else if (value instanceof LocalDateTime) {
-            return ((LocalDateTime) value).format(DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm"));
+            return ((LocalDateTime) value).format(DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy HH:mm", new java.util.Locale("es")));
         } else if (value instanceof List) {
             List<?> list = (List<?>) value;
             if (list.isEmpty()) {
-                return "No consultations";
+                return "No hay consultas";
             }
-            // Show first few items if they are consultation details
+            // Show first few items if they are consultation details (Spanish)
             if (list.size() <= 3) {
-                return String.format("View %d consultation(s)", list.size());
+                return String.format("Ver %d consulta(s)", list.size());
             } else {
-                return String.format("View %d consultations (click for details)", list.size());
+                return String.format("Ver %d consultas", list.size());
             }
         } else if (value instanceof Number) {
             // Format numbers professionally
@@ -958,11 +1208,11 @@ private String formatFieldNameProfessionalSpanish(String fieldName) {
             // Create header
             Row headerRow = sheet.createRow(rowNum++);
             org.apache.poi.ss.usermodel.Cell keyCell = headerRow.createCell(0);
-            keyCell.setCellValue("Indicator");
+            keyCell.setCellValue("MÉTRICA");
             keyCell.setCellStyle(headerStyle);
             
             org.apache.poi.ss.usermodel.Cell valueCell = headerRow.createCell(1);
-            valueCell.setCellValue("Value");
+            valueCell.setCellValue("VALOR");
             valueCell.setCellStyle(headerStyle);
             
             // Fill with data
@@ -1017,7 +1267,7 @@ private String formatFieldNameProfessionalSpanish(String fieldName) {
                     // Create a sub-section for filters
                     Row filtersHeaderRow = sheet.createRow(rowNum++);
                     org.apache.poi.ss.usermodel.Cell filtersCell = filtersHeaderRow.createCell(0);
-                    filtersCell.setCellValue("Applied Filters");
+                    filtersCell.setCellValue("Filtros aplicados");
                     filtersCell.setCellStyle(headerStyle);
                     
                     // Add each filter

@@ -119,13 +119,21 @@ public class SpecialtyReportService {
      * Construye información de paginación personalizada para los resultados filtrados
      */
     private PaginationInfoDTO buildCustomPaginationInfo(Page<MedicalConsultation> originalPage, int filteredSize) {
+        int pageSize = originalPage.getSize();
+        int currentPage = originalPage.getNumber();
+        int totalPages = pageSize > 0 ? (int) Math.ceil((double) filteredSize / pageSize) : 0;
+
+        // Recompute hasNext/hasPrevious based on the filtered result set and requested page
+        boolean hasPrevious = currentPage > 0 && totalPages > 0;
+        boolean hasNext = totalPages > 0 && currentPage < (totalPages - 1);
+
         return PaginationInfoDTO.builder()
-                .currentPage(originalPage.getNumber())
-                .totalPages((int) Math.ceil((double) filteredSize / originalPage.getSize()))
+                .currentPage(currentPage)
+                .totalPages(totalPages)
                 .totalElements((long) filteredSize)
-                .pageSize(originalPage.getSize())
-                .hasNext(originalPage.hasNext())
-                .hasPrevious(originalPage.hasPrevious())
+                .pageSize(pageSize)
+                .hasNext(hasNext)
+                .hasPrevious(hasPrevious)
                 .build();
     }
 

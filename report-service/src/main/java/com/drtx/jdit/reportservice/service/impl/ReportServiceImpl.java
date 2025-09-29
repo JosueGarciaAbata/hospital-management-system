@@ -196,11 +196,11 @@ public class ReportServiceImpl implements ReportService {
     private String getReportName(String reportType) {
         ReportType type = ReportType.valueOf(reportType.toUpperCase());
         return switch (type) {
-            case SPECIALTY -> "Consultations by Specialty";
-            case DOCTOR -> "Consultations by Doctor";
-            case MEDICAL_CENTER -> "Consultations by Medical Center";
-            case MONTHLY -> "Monthly Consultations";
-            default -> "Report";
+            case SPECIALTY ->  "Consultas por Especialidad";
+            case DOCTOR -> "Consultas por Médico";
+            case MEDICAL_CENTER -> "Consultas por Centro Médico";
+            case MONTHLY -> "Consultas Mensuales";
+            default -> "Reporte";
         };
     }
     
@@ -284,8 +284,8 @@ public class ReportServiceImpl implements ReportService {
             // Create response
             ReportResponseDTO<SpecialtyConsultationDTO> response = new ReportResponseDTO<>();
             response.setData(consultations);
-            response.setReportName("Consultations by Specialty");
-            response.setMessage("Report generated successfully");
+            response.setReportName("Consultas por Especialidad");
+            response.setMessage("Reporte generado exitosamente");
             response.setTotalElements(consultations.size());
             response.setGeneratedAt(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
             
@@ -319,8 +319,8 @@ public class ReportServiceImpl implements ReportService {
             // Create response
             ReportResponseDTO<DoctorConsultationDTO> response = new ReportResponseDTO<>();
             response.setData(consultations);
-            response.setReportName("Consultations by Doctor");
-            response.setMessage("Report generated successfully");
+            response.setReportName("Consultas por Especialidad");
+            response.setMessage("Reporte generado exitosamente");
             response.setTotalElements(consultations.size());
             response.setGeneratedAt(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
             
@@ -354,8 +354,8 @@ public class ReportServiceImpl implements ReportService {
             // Create response
             ReportResponseDTO<MedicalCenterConsultationDTO> response = new ReportResponseDTO<>();
             response.setData(consultations);
-            response.setReportName("Consultations by Medical Center");
-            response.setMessage("Report generated successfully");
+            response.setReportName("Consultas por Centro Medico");
+            response.setMessage("Reporte generado exitosamente");
             response.setTotalElements(consultations.size());
             response.setGeneratedAt(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
             
@@ -389,8 +389,8 @@ public class ReportServiceImpl implements ReportService {
             // Create response
             ReportResponseDTO<MonthlyConsultationDTO> response = new ReportResponseDTO<>();
             response.setData(consultations);
-            response.setReportName("Monthly Consultations");
-            response.setMessage("Report generated successfully");
+            response.setReportName("Consultas Mensuales");
+            response.setMessage("Reporte generado exitosamente");
             response.setTotalElements(consultations.size());
             response.setGeneratedAt(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
             
@@ -992,7 +992,7 @@ public class ReportServiceImpl implements ReportService {
                     dto.setTotalConsultations(stat.getTotalConsultations().longValue());
                 }
                 // Mantener la información en notes como complemento
-                dto.setNotes("Total consultations: " + stat.getTotalConsultations());
+                dto.setNotes("Total de consultas: " + stat.getTotalConsultations());
                 result.add(dto);
             }
         }
@@ -1031,10 +1031,36 @@ public class ReportServiceImpl implements ReportService {
             for (DoctorReportResponseDTO.DoctorStatisticDTO stat : reportResponse.getDoctorStatistics()) {
                 // Create doctor consultation DTO
                 DoctorConsultationDTO doctorDTO = new DoctorConsultationDTO();
+
+                // Map basic fields
                 doctorDTO.setDoctorId(stat.getDoctorId());
                 doctorDTO.setDoctorName(stat.getDoctorName());
                 doctorDTO.setSpecialty(stat.getSpecialty());
-                doctorDTO.setTotalConsultations((long) stat.getTotalConsultations());
+                doctorDTO.setTotalConsultations(stat.getTotalConsultations() != null ? stat.getTotalConsultations().longValue() : 0L);
+
+                // Best-effort: try to populate DNI / document number from statistic DTO via reflection
+                String dni = null;
+                try {
+                    String[] candidateGetters = new String[] {"getDocumentNumber", "getDni", "getCedula", "getDocument", "getIdentificationNumber"};
+                    for (String getter : candidateGetters) {
+                        try {
+                            java.lang.reflect.Method m = stat.getClass().getMethod(getter);
+                            Object val = m.invoke(stat);
+                            if (val != null) {
+                                dni = String.valueOf(val);
+                                break;
+                            }
+                        } catch (NoSuchMethodException ignored) {
+                        }
+                    }
+                } catch (Exception ignored) {
+                }
+
+                // Fallback to doctorId if no document number provided
+                if (dni == null || dni.isBlank()) {
+                    dni = stat.getDoctorId() != null ? String.valueOf(stat.getDoctorId()) : null;
+                }
+                doctorDTO.setDni(dni);
 
                 // Create consultation details from detailed consultations
                 List<DoctorConsultationDTO.ConsultationDetail> details = new ArrayList<>();
@@ -1042,16 +1068,24 @@ public class ReportServiceImpl implements ReportService {
                 // If detailed consultations available, find ones for this doctor
                 if (reportResponse.getDetailedConsultations() != null) {
                     for (DetailedConsultationDTO detail : reportResponse.getDetailedConsultations()) {
-                        // Filter consultations for current doctor
-                        if (stat.getDoctorName().equals(detail.getDoctorName())) {
+                        // Filter consultations for current doctor (compare by name or other available keys)
+                        boolean sameDoctor = false;
+                        if (stat.getDoctorName() != null && stat.getDoctorName().equals(detail.getDoctorName())) {
+                            sameDoctor = true;
+                        }
+                        // If doctorId is available in detail (unlikely in current DTO), use it
+                        // (kept as defensive; DetailedConsultationDTO currently has no doctorId)
+
+                        if (sameDoctor) {
                             DoctorConsultationDTO.ConsultationDetail consultDetail = new DoctorConsultationDTO.ConsultationDetail();
                             consultDetail.setId(detail.getConsultationId());
                             consultDetail.setPatientName(detail.getPatientName());
                             consultDetail.setConsultationDate(detail.getConsultationDate());
                             consultDetail.setStatus(detail.getStatus());
-                            // Populate center name and notes if available
+                            // Populate center name, notes and diagnosis if available
                             consultDetail.setMedicalCenter(detail.getCenterName());
                             consultDetail.setNotes(detail.getNotes());
+                            consultDetail.setDiagnosis(detail.getDiagnosis());
                             details.add(consultDetail);
                         }
                     }

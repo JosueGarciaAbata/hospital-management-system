@@ -20,6 +20,7 @@ public class DoctorConsultationDTO {
     private String doctorName;
     private String specialty;
     private Long totalConsultations;
+    private String dni;
     
     @Builder.Default
     private List<ConsultationDetail> consultations = new ArrayList<>();

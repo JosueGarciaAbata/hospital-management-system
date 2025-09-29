@@ -4,6 +4,10 @@ import com.drtx.jdit.reportservice.dto.*;
 import com.drtx.jdit.reportservice.enums.ExportFormat;
 import com.drtx.jdit.reportservice.service.ReportService;
 import com.drtx.jdit.reportservice.external.feign.ConsultingServiceClient;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
@@ -13,6 +17,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+@Tag(name = "Reportes", description = "Operaciones para generar y obtener reportes estadísticos del sistema")
 @RestController
 @RequestMapping("/api/reports")
 @RequiredArgsConstructor
@@ -22,11 +27,15 @@ public class ReportController {
     private final ReportService reportService;
     private final ConsultingServiceClient consultingServiceClient;
     
-    /**
-     * Endpoint para generar reportes en diferentes formatos (Excel, CSV)
-     * @param request DTO con los parámetros para la generación del reporte
-     * @return ResponseEntity con el archivo del reporte generado
-     */
+    @Operation(
+            summary = "Genera un reporte en formato PDF, Excel o CSV",
+            description = "Permite generar reportes basados en parámetros específicos y obtener el archivo resultante"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Reporte generado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Parámetros inválidos"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @PostMapping("/generate")
     public ResponseEntity<?> generateReport(@RequestBody ReportRequestDTO request) {
         log.info("Generando reporte tipo: {} en formato: {}", request.getReportType(), request.getExportFormat());
@@ -53,12 +62,16 @@ public class ReportController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
                 .body(reportData);
     }
-    
-    /**
-     * Endpoint para obtener los datos del reporte sin formato de exportación
-     * @param request DTO con los parámetros para la generación del reporte
-     * @return ResponseEntity con los datos del reporte en formato JSON
-     */
+
+    @Operation(
+            summary = "Obtiene los datos de un reporte sin formato de exportación",
+            description = "Devuelve los datos del reporte en formato JSON para su procesamiento posterior"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Datos del reporte obtenidos correctamente"),
+            @ApiResponse(responseCode = "400", description = "Parámetros inválidos"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @PostMapping("/data")
     public ResponseEntity<ReportResponseDTO<?>> getReportData(@RequestBody ReportRequestDTO request) {
         log.info("Obteniendo datos para reporte tipo: {}", request.getReportType());
@@ -66,13 +79,17 @@ public class ReportController {
         ReportResponseDTO<?> response = reportService.getReportData(request);
         return ResponseEntity.ok(response);
     }
-    
-    /**
-     * Endpoint para obtener consultas por especialidad
-     * @param request DTO con los parámetros para filtrar las consultas
-     * @param authorization Token de autorización
-     * @return ResponseEntity con los datos de consultas agrupadas por especialidad
-     */
+
+    @Operation(
+            summary = "Obtiene consultas médicas agrupadas por especialidad",
+            description = "Genera un reporte de consultas por especialidad usando filtros proporcionados"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Reporte por especialidad obtenido correctamente"),
+            @ApiResponse(responseCode = "400", description = "Parámetros inválidos"),
+            @ApiResponse(responseCode = "401", description = "No autorizado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @PostMapping("/consultation/specialty")
     public ResponseEntity<SpecialtyReportResponseDTO> getConsultationsBySpecialty(
             @RequestBody SpecialtyReportRequestDTO request,
@@ -87,13 +104,17 @@ public class ReportController {
         
         return ResponseEntity.ok(response);
     }
-    
-    /**
-     * Endpoint para obtener consultas por médico con estadísticas avanzadas
-     * @param request DTO con los parámetros para filtrar las consultas
-     * @param authorization Token de autorización
-     * @return ResponseEntity con reporte estadístico completo de consultas por médico
-     */
+
+    @Operation(
+            summary = "Genera reporte estadístico de consultas por médico",
+            description = "Obtiene información detallada de consultas agrupadas por médico con estadísticas avanzadas"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Reporte por médico generado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Parámetros inválidos"),
+            @ApiResponse(responseCode = "401", description = "No autorizado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @PostMapping("/consultation/doctor")
     public ResponseEntity<DoctorReportResponseDTO> getConsultationsByDoctor(
             @RequestBody DoctorReportRequestDTO request,
@@ -113,13 +134,17 @@ public class ReportController {
             throw e;
         }
     }
-    
-    /**
-     * Endpoint para obtener consultas por centro médico
-     * @param request DTO con los parámetros para filtrar las consultas
-     * @param authorization Token de autorización
-     * @return ResponseEntity con reporte estadístico completo por centro médico
-     */
+
+    @Operation(
+            summary = "Genera reporte de consultas por centro médico",
+            description = "Obtiene reportes estadísticos agrupados por centro médico según los filtros proporcionados"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Reporte por centro médico obtenido correctamente"),
+            @ApiResponse(responseCode = "400", description = "Parámetros inválidos"),
+            @ApiResponse(responseCode = "401", description = "No autorizado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @PostMapping("/consultation/center")
     public ResponseEntity<MedicalCenterReportResponseDTO> getConsultationsByCenter(
             @RequestBody MedicalCenterReportRequestDTO request,
@@ -139,13 +164,17 @@ public class ReportController {
             throw e;
         }
     }
-    
-    /**
-     * Endpoint para obtener consultas por mes
-     * @param request DTO con los parámetros para filtrar las consultas
-     * @param authorization Token de autorización
-     * @return ResponseEntity con reporte estadístico mensual
-     */
+
+    @Operation(
+            summary = "Genera reporte mensual de consultas médicas",
+            description = "Obtiene reportes estadísticos agrupados por mes según los filtros proporcionados"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Reporte mensual obtenido correctamente"),
+            @ApiResponse(responseCode = "400", description = "Parámetros inválidos"),
+            @ApiResponse(responseCode = "401", description = "No autorizado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @PostMapping("/consultation/monthly")
     public ResponseEntity<MonthlyReportResponseDTO> getConsultationsByMonth(
             @RequestBody MonthlyReportRequestDTO request,
